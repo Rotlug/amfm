@@ -20,8 +20,9 @@ pub enum CacheError {
     BinEncodeError(bincode::error::EncodeError),
     BinDecodeError(bincode::error::DecodeError),
     JsonDecodeError(serde_json::Error),
-    ChannelSendError(mpsc::SendError<u64>),
 }
+
+type CacheResultHandle = thread::JoinHandle<Result<Vec<Station>, CacheError>>;
 
 /// Download and store the json file containing all stations.
 /// Then, read and convert said json file into a .bin file for faster loading times
@@ -29,13 +30,10 @@ pub enum CacheError {
 /// Returns 2 values:
 /// 1: Receiver - use to listen to percentage updates in the download
 /// 2: JoinHandle - use to get Error and block until download completion
-pub fn make_cache() -> (
-    Receiver<u64>,
-    thread::JoinHandle<Result<Vec<Station>, CacheError>>,
-) {
+pub fn make_cache() -> (Receiver<u64>, CacheResultHandle) {
     let (tx, rx) = mpsc::channel();
 
-    let handle = thread::spawn(move || {
+    let handle: CacheResultHandle = thread::spawn(move || {
         let client = reqwest::blocking::Client::new();
         let response = client
             .get(STATIONS_URL)
@@ -67,8 +65,8 @@ pub fn make_cache() -> (
             }
 
             downloaded += bytes_read as u64;
-            if let Err(err) = tx.send(downloaded * 100 / total_size) {
-                return Err(CacheError::ChannelSendError(err));
+            if tx.send(downloaded * 100 / total_size).is_err() {
+                break;
             }
         }
 
