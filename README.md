@@ -1,0 +1,13 @@
+# amfm - Internet radio for the terminal
+
+amfm is a TUI (Terminal User Interface) to browse, play, and save songs from various internet radio stations (The list of which is provided via [radio-browser.info](https://www.radio-browser.info/))
+
+## Planned features
+- [ ] Initial user interface - Search stations
+- [ ] Playback
+- [ ] Save songs as identified with ICY Metadata
+
+## Build Requirements
+Build requirements are defined in `Cargo.toml`. However, the following packages need to be installed as well:
+* pkg-config
+* openssl
