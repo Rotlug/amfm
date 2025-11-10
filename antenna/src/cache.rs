@@ -1,5 +1,5 @@
 use std::{
-    fs::{self, File},
+    fs::File,
     io::{self, BufReader, Read, Write},
     sync::mpsc::{self, Receiver},
     thread,
@@ -7,7 +7,7 @@ use std::{
 
 use crate::{
     stations::Station,
-    utils::{self, get_cache_dir},
+    utils::{self},
 };
 
 const STATIONS_URL: &str = "http://37.27.202.89/json/stations";
