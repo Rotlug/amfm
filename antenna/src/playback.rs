@@ -1,29 +1,26 @@
-use std::{
-    error::Error,
-    sync::{Arc, Mutex},
-};
+use std::{error::Error, fmt::Debug, sync::mpsc::Sender, thread};
 
-use gstreamer::prelude::ElementExt;
+use gstreamer::{MessageView, prelude::ElementExt};
 
 /// Playback manager that ensures only one playback may play
 /// At any given time.
 pub struct PlaybackManager {
-    current_player: Arc<Mutex<Option<gstreamer::Element>>>,
+    current_player: Option<gstreamer::Element>,
 }
 
 impl Default for PlaybackManager {
     fn default() -> Self {
         gstreamer::init().ok();
         Self {
-            current_player: Arc::new(Mutex::new(None)),
+            current_player: None,
         }
     }
 }
 
 impl PlaybackManager {
-    pub fn start(&self, url: &str) -> Result<(), Box<dyn Error>> {
+    pub fn start(&mut self, url: &str, tx: Option<Sender<String>>) -> Result<(), Box<dyn Error>> {
         // Stop the playback from the old stream
-        if let Some(old) = self.current_player.lock().unwrap().take() {
+        if let Some(old) = &self.current_player {
             old.set_state(gstreamer::State::Null)?;
         }
 
@@ -34,17 +31,55 @@ impl PlaybackManager {
         playbin.set_state(gstreamer::State::Playing)?;
 
         // Switch the referenced element in current_player to the current playbin
-        *self.current_player.lock().unwrap() = Some(playbin);
+        self.current_player = Some(playbin.clone());
+
+        // If TX is None then we don't care about receiving meta-data, so we can stop this function
+        // Right now.
+        if tx.is_none() {
+            return Ok(());
+        }
+
+        let bus = playbin.bus().unwrap();
+
+        // This thread sends metadata updates through tx as long as the stream is active
+        thread::spawn(move || {
+            let tx = tx.unwrap();
+
+            for msg in bus.iter_timed(gstreamer::ClockTime::NONE) {
+                match msg.view() {
+                    MessageView::Eos(..) => {
+                        playbin
+                            .set_state(gstreamer::State::Null)
+                            .expect("Should have been able to stop");
+                        break;
+                    }
+                    MessageView::Error(err) => {
+                        eprintln!("Error: {err}:?");
+                        playbin
+                            .set_state(gstreamer::State::Null)
+                            .expect("Should have been able to stop");
+                        break;
+                    }
+                    MessageView::Tag(tag) => {
+                        let tags = tag.tags();
+                        if let Some(title) = tags.index::<gstreamer::tags::Title>(0) {
+                            let _ = tx.send(title.get().to_string()); // FIXME
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        });
 
         Ok(())
     }
 
-    pub fn stop(&self) -> Result<(), Box<dyn Error>> {
-        if let Some(old) = self.current_player.lock().unwrap().take() {
+    pub fn stop(&mut self) -> Result<(), Box<dyn Error>> {
+        if let Some(old) = &self.current_player {
             old.set_state(gstreamer::State::Null)?;
         }
 
-        *self.current_player.lock().unwrap() = None;
+        self.current_player = None;
 
         Ok(())
     }
@@ -56,19 +91,28 @@ mod tests {
 
     #[test]
     fn playback_start() {
-        let mgr = PlaybackManager::default();
+        let mut mgr = PlaybackManager::default();
 
-        assert!(mgr.start("http://hydra.cdnstream.com/1521_128").is_ok())
+        assert!(
+            mgr.start("http://hydra.cdnstream.com/1521_128", None)
+                .is_ok()
+        )
     }
 
     #[test]
     fn simulate_start_switch_and_stop() {
-        let mgr = PlaybackManager::default();
+        let mut mgr = PlaybackManager::default();
 
-        assert!(mgr.start("http://hydra.cdnstream.com/1521_128").is_ok());
-        assert!(mgr.start("https://ice1.somafm.com/reggae-256-mp3").is_ok());
         assert!(
-            mgr.start("https://liveaudio.lamusica.com/MIA_WCMQ_icy")
+            mgr.start("http://hydra.cdnstream.com/1521_128", None)
+                .is_ok()
+        );
+        assert!(
+            mgr.start("https://ice1.somafm.com/reggae-256-mp3", None)
+                .is_ok()
+        );
+        assert!(
+            mgr.start("https://liveaudio.lamusica.com/MIA_WCMQ_icy", None)
                 .is_ok()
         );
 
