@@ -2,6 +2,7 @@
 // --> https://gitlab.gnome.org/World/Shortwave/
 
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::Sender;
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -54,6 +55,7 @@ pub struct PlaybackManager {
     sender: Sender<PlaybackUpdate>,
 
     buffering_state: Arc<Mutex<BufferingState>>,
+    is_playing: Arc<AtomicBool>,
 }
 
 impl PlaybackManager {
@@ -81,6 +83,7 @@ impl PlaybackManager {
             sender,
             buffering_state,
             current_title: Arc::new(Mutex::new(String::new())),
+            is_playing: Arc::new(AtomicBool::from(false)),
         };
 
         mgr.setup_signals();
@@ -126,6 +129,7 @@ impl PlaybackManager {
         let sender_clone = self.sender.clone();
         let buffering_state_clone = self.buffering_state.clone();
         let current_title_clone = self.current_title.clone();
+        let is_playing = self.is_playing.clone();
 
         thread::spawn(move || {
             for message in bus.iter_timed(gstreamer::ClockTime::NONE) {
@@ -135,6 +139,7 @@ impl PlaybackManager {
                     &buffering_state_clone,
                     sender_clone.clone(),
                     current_title_clone.clone(),
+                    is_playing.clone(),
                 );
             }
         });
@@ -153,6 +158,7 @@ impl PlaybackManager {
         buffering_state: &Arc<Mutex<BufferingState>>,
         sender: Sender<PlaybackUpdate>,
         current_title: Arc<Mutex<String>>,
+        is_playing: Arc<AtomicBool>,
     ) {
         match message.view() {
             // Title changes
@@ -196,10 +202,10 @@ impl PlaybackManager {
                     }
                 } else if buffering_state.buffering {
                     buffering_state.buffering = false;
-                    sender.send(PlaybackUpdate::Playing).unwrap();
 
-                    if buffering_state.is_live == Some(false) {
+                    if buffering_state.is_live == Some(false) && is_playing.load(Ordering::SeqCst) {
                         let _ = pipeline.set_state(gstreamer::State::Playing);
+                        sender.send(PlaybackUpdate::Playing).unwrap();
                         if let Some((pad, probe_id)) = buffering_state.buffering_probe.take() {
                             pad.remove_probe(probe_id);
                         }
@@ -347,10 +353,12 @@ impl PlaybackManager {
 
     pub fn play(&mut self) {
         self.set_state(gstreamer::State::Playing);
+        self.is_playing.store(true, Ordering::SeqCst);
     }
 
     pub fn stop(&mut self) {
         self.set_state(gstreamer::State::Null);
+        self.is_playing.store(false, Ordering::SeqCst);
     }
 
     /// Check if recorder exists
