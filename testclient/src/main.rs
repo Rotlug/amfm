@@ -1,8 +1,10 @@
-use std::sync::mpsc;
+use std::{sync::mpsc, thread, time::Duration};
 
 use antenna::playback::PlaybackManager;
 
 fn main() {
+    PlaybackManager::init();
+
     let (tx, rx) = mpsc::channel();
     let mut player = PlaybackManager::new(tx);
 
