@@ -2,7 +2,6 @@
 // --> https://gitlab.gnome.org/World/Shortwave/
 
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::Sender;
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -17,6 +16,9 @@ use gstreamer::{
     prelude::{ClockExt, ElementExt, GstBinExt, PadExt},
 };
 
+/// BufferingState ensures that the player acutally pauses when buffered
+/// And can return back to playing normally when buffering
+/// Is done
 #[derive(Default, Debug)]
 struct BufferingState {
     buffering: bool,
@@ -43,6 +45,8 @@ pub enum PlaybackUpdate {
     Loading,
 }
 
+/// Manages the playback and recording
+/// Of audio streams
 pub struct PlaybackManager {
     pipeline: gstreamer::Pipeline,
     recorderbin: Option<gstreamer::Bin>,
@@ -53,9 +57,14 @@ pub struct PlaybackManager {
 }
 
 impl PlaybackManager {
-    pub fn new(sender: Sender<PlaybackUpdate>) -> Self {
+    /// Initialize GStreamer --> Only call this once!!!
+    pub fn init() {
         gstreamer::init().unwrap();
+    }
 
+    /// Creates a new instance of PlaybackManager.
+    /// NOTE: You must call `PlaybackManager::init` before calling this function
+    pub fn new(sender: Sender<PlaybackUpdate>) -> Self {
         // create gstreamer pipeline
         let pipeline_description = "uridecodebin name=uridecodebin use-buffering=true buffer-duration=6000000000 ! audioconvert name=audioconvert ! tee name=tee ! queue ! autoaudiosink name=autoaudiosink".to_string();
 
