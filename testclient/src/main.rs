@@ -3,18 +3,19 @@ use std::sync::mpsc;
 use antenna::playback::PlaybackManager;
 
 fn main() {
-    let mut player = PlaybackManager::default();
-
     let (tx, rx) = mpsc::channel();
+    let mut player = PlaybackManager::new(tx);
 
-    player
-        .start(
-            "http://14543.live.streamtheworld.com/977_SMOOJAZZ_SC",
-            Some(tx),
-        )
-        .expect("failed");
+    player.set_source_uri("http://15693.live.streamtheworld.com:3690/977_SMOOJAZZ_SC");
 
-    while let Ok(new_song) = rx.recv() {
-        println!("{new_song}");
+    player.play();
+
+    let mut count = 0;
+    while let Ok(update) = rx.recv() {
+        println!("{update:?}");
+        count += 1;
+        if count == 3 {
+            player.stop();
+        }
     }
 }
