@@ -50,9 +50,6 @@ pub struct PlaybackManager {
     sender: Sender<PlaybackUpdate>,
 
     buffering_state: Arc<Mutex<BufferingState>>,
-
-    // Thread management
-    stop_flag: Arc<AtomicBool>,
 }
 
 impl PlaybackManager {
@@ -75,8 +72,6 @@ impl PlaybackManager {
             sender,
             buffering_state,
             current_title: Arc::new(Mutex::new(String::new())),
-
-            stop_flag: Arc::new(AtomicBool::new(false)),
         };
 
         mgr.setup_signals();
@@ -123,19 +118,15 @@ impl PlaybackManager {
         let buffering_state_clone = self.buffering_state.clone();
         let current_title_clone = self.current_title.clone();
 
-        let stop_flag = self.stop_flag.clone();
-
         thread::spawn(move || {
-            while !stop_flag.load(Ordering::SeqCst) {
-                if let Some(message) = bus.timed_pop(gstreamer::ClockTime::from_mseconds(100)) {
-                    Self::parse_bus_message(
-                        pipeline_clone.clone(),
-                        &message,
-                        &buffering_state_clone,
-                        sender_clone.clone(),
-                        current_title_clone.clone(),
-                    );
-                }
+            for message in bus.iter_timed(gstreamer::ClockTime::NONE) {
+                Self::parse_bus_message(
+                    pipeline_clone.clone(),
+                    &message,
+                    &buffering_state_clone,
+                    sender_clone.clone(),
+                    current_title_clone.clone(),
+                );
             }
         });
     }
@@ -347,11 +338,9 @@ impl PlaybackManager {
 
     pub fn play(&mut self) {
         self.set_state(gstreamer::State::Playing);
-        self.stop_flag.store(false, Ordering::SeqCst);
     }
 
     pub fn stop(&mut self) {
-        self.stop_flag.store(true, Ordering::SeqCst);
         self.set_state(gstreamer::State::Null);
     }
 
