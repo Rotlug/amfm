@@ -1,3 +1,6 @@
+// The vast majority of this code is from "Shortwave"
+// --> https://gitlab.gnome.org/World/Shortwave/
+
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::Sender;
