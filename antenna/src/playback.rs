@@ -90,8 +90,8 @@ impl PlaybackManager {
         mgr
     }
 
-    // Ensures audio pads are linked automatically
-    // Also ensures `self` gets updated if any pipeline component gets replaced
+    /// Main setup function, links the audio pads and sets up the
+    /// Event-listening thread.
     fn setup_signals(&mut self) {
         // dynamically link uridecodebin element with audioconvert element
         let uridecodebin = self.pipeline.by_name("uridecodebin").unwrap();
@@ -144,6 +144,9 @@ impl PlaybackManager {
             }
         });
     }
+
+    /// Update the corrently playing station (URI)
+    /// Use this method if you want to switch a station
     pub fn set_source_uri(&mut self, source: &str) {
         let _ = self.pipeline.set_state(gstreamer::State::Null);
         *self.current_title.lock().unwrap() = String::new();
@@ -152,6 +155,8 @@ impl PlaybackManager {
         uridecodebin.set_property("uri", source);
     }
 
+    /// Decide what to do with an incoming message
+    /// NOTE: Since you can't use `self` from a thread, you have to provide the arguments manually
     fn parse_bus_message(
         pipeline: gstreamer::Pipeline,
         message: &gstreamer::Message,
@@ -243,6 +248,10 @@ impl PlaybackManager {
         }
     }
 
+    /// Stop the recording.
+    /// set `discard_buffered_data` to true if you DO NOT WANT to
+    /// properly close the file (The file might be incomplete in return!)
+    /// You should do that if you want to switch streams, for example.
     pub fn stop_recording(&mut self, discard_buffered_data: bool) {
         if !self.is_recording() {
             return;
@@ -351,17 +360,19 @@ impl PlaybackManager {
         }
     }
 
+    /// Start playing the current stream
     pub fn play(&mut self) {
         self.set_state(gstreamer::State::Playing);
         self.is_playing.store(true, Ordering::SeqCst);
     }
 
+    /// Stop playing the current stream
     pub fn stop(&mut self) {
         self.set_state(gstreamer::State::Null);
         self.is_playing.store(false, Ordering::SeqCst);
     }
 
-    /// Check if recorder exists
+    /// Check if a recorder is currently attached
     pub fn is_recording(&self) -> bool {
         self.recorderbin.is_some()
     }
