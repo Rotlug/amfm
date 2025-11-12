@@ -1,4 +1,4 @@
-use std::{error::Error, fmt::Debug, sync::mpsc::Sender, thread};
+use std::{error::Error, sync::mpsc::Sender, thread};
 
 use gstreamer::{MessageView, prelude::ElementExt};
 
@@ -43,7 +43,11 @@ impl PlaybackManager {
 
         // This thread sends metadata updates through tx as long as the stream is active
         thread::spawn(move || {
-            let tx = tx.unwrap();
+            let tx = tx.expect("tx should be OK");
+
+            // Variable used for preventing duplicate song titles
+            // From being sent
+            let mut previous_title = String::new();
 
             for msg in bus.iter_timed(gstreamer::ClockTime::NONE) {
                 match msg.view() {
@@ -63,7 +67,15 @@ impl PlaybackManager {
                     MessageView::Tag(tag) => {
                         let tags = tag.tags();
                         if let Some(title) = tags.index::<gstreamer::tags::Title>(0) {
-                            let _ = tx.send(title.get().to_string()); // FIXME
+                            let title = title.get().to_string();
+
+                            // Ignore duplicate songs
+                            if title == previous_title {
+                                continue;
+                            }
+
+                            previous_title = title.clone();
+                            let _ = tx.send(title);
                         }
                     }
                     _ => {}
