@@ -22,15 +22,19 @@ pub enum CacheError {
     JsonDecodeError(serde_json::Error),
 }
 
-type CacheResultHandle = thread::JoinHandle<Result<Vec<Station>, CacheError>>;
+pub type CacheResultHandle = thread::JoinHandle<Result<Vec<Station>, CacheError>>;
+
+#[derive(Debug)]
+pub struct CacheResult {
+    /// This reciever is used to get new loading percentage data
+    pub rx: Receiver<u64>,
+    /// This handle is used to block until loading completion and check for errors
+    pub handle: CacheResultHandle,
+}
 
 /// Download and store the json file containing all stations.
 /// Then, read and convert said json file into a .bin file for faster loading times
-///
-/// Returns 2 values:
-/// 1: Receiver - use to listen to percentage updates in the download
-/// 2: JoinHandle - use to get Error and block until download completion
-pub fn make_cache() -> (Receiver<u64>, CacheResultHandle) {
+pub fn make_cache() -> CacheResult {
     let (tx, rx) = mpsc::channel();
 
     let handle: CacheResultHandle = thread::spawn(move || {
@@ -74,7 +78,7 @@ pub fn make_cache() -> (Receiver<u64>, CacheResultHandle) {
         Ok(result)
     });
 
-    (rx, handle)
+    CacheResult { rx, handle }
 }
 
 /// Creates a binary version of the json file for faster access
