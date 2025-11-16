@@ -19,7 +19,7 @@ use gstreamer::{
 
 /// BufferingState ensures that the player acutally pauses when buffered
 /// And can return back to playing normally when buffering
-/// Is done
+/// is done
 #[derive(Default, Debug)]
 struct BufferingState {
     buffering: bool,
@@ -48,6 +48,7 @@ pub enum PlaybackUpdate {
 
 /// Manages the playback and recording
 /// Of audio streams
+#[derive(Debug)]
 pub struct PlaybackManager {
     pipeline: gstreamer::Pipeline,
     recorderbin: Option<gstreamer::Bin>,
