@@ -3,11 +3,11 @@ use serde::{Deserialize, Serialize};
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
 pub struct Station {
     #[serde(rename = "stationuuid")]
-    id: String,
+    pub id: String,
 
-    url: String,
-    country: String,
-    name: String,
+    pub url: String,
+    pub country: String,
+    pub name: String,
 }
 
 impl Station {
