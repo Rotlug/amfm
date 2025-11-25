@@ -259,6 +259,7 @@ impl PlaybackManager {
         }
 
         let recorderbin = self.recorderbin.clone().unwrap();
+        recorderbin.set_state(gstreamer::State::Null).unwrap();
 
         // Get the source pad of the tee that is connected to the recorderbin
         let recorderbin_sinkpad = recorderbin
@@ -381,7 +382,7 @@ impl PlaybackManager {
     /// Start recording the stream to some path
     pub fn start_recording(&mut self, path: PathBuf) {
         if self.is_recording() {
-            return;
+            self.stop_recording(false);
         }
 
         // Create actual recorderbin
