@@ -4,11 +4,14 @@ amfm is a TUI (Terminal User Interface) to browse, play, and save songs from var
 
 ## Planned features
 - [ ] Initial user interface - Search stations
-- [ ] Playback
-- [ ] Save songs as identified with ICY Metadata
+- [x] Playback
+- [x] Save songs as identified with ICY Metadata
 
 ## Build Requirements
 Build requirements are defined in `Cargo.toml`. However, the following packages need to be installed as well:
 * `pkg-config`
 * `openssl`
-* `gstreamer` and its various plugins
+* `gstreamer` and its various plugins (good, bad, ugly...)
+
+## Special Thanks
+Thank you very much to the ![Shortwave](https://gitlab.gnome.org/World/Shortwave) developers as teh GStreamer backend code is taken from that app
