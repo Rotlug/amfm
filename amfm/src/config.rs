@@ -1,24 +1,41 @@
-use std::path::PathBuf;
+use std::{env, fs, path::PathBuf};
 
 use antenna::stations::Station;
 use clap::Parser;
+
+fn get_default_temp_dir() -> PathBuf {
+    let dir = env::temp_dir().join("amfm");
+    fs::create_dir_all(&dir).expect("Could not create temp directory!"); // Ensure path exists
+
+    dir
+}
+
+fn get_default_save_directory() -> PathBuf {
+    let dir = dirs::audio_dir()
+        .unwrap_or_else(|| env::current_dir().expect("Current dir not found!"))
+        .join("amfm");
+
+    fs::create_dir_all(&dir).expect("Could not create saved dir!");
+
+    dir
+}
 
 #[derive(Parser)]
 #[command(version, about, long_about=None)]
 pub struct Config {
     /// How many songs can be in the queue at any given time
-    #[arg(short, long)]
-    max_queue_size: Option<usize>,
+    #[arg(short, long, default_value_t = 10)]
+    max_queue_size: usize,
 
     /// Where queued songs get stored if the user does not
     /// Save them permenantly
 
-    #[arg(long)]
-    temp_song_location: Option<PathBuf>,
+    #[arg(long, default_value = get_default_temp_dir().into_os_string())]
+    temp_song_location: PathBuf,
 
     /// Where permenantly saved songs go
-    #[arg(long)]
-    saved_song_location: Option<PathBuf>,
+    #[arg(long, default_value = get_default_save_directory().into_os_string())]
+    saved_song_location: PathBuf,
 
     /// Start the program already playing some station (URL)
     #[arg(short, long)]
