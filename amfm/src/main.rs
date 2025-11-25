@@ -196,7 +196,7 @@ fn update(model: &mut AppModel, msg: Message) -> Option<Message> {
                     .expect("Error inserting new song to queue");
             }
         }
-        Message::Stop => model.playback.stop(),
+        Message::Stop => stop(model),
         Message::Navigation(key) => {
             if let Some(new_focus) = handle_navigation(model, key) {
                 model.focus = new_focus;
