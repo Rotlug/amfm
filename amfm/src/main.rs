@@ -8,13 +8,13 @@ use std::{
 use antenna::{
     cache::{self, CacheResult},
     playback::{PlaybackManager, PlaybackUpdate},
-    stations::Station,
+    stations::{Station, StationList},
 };
 
 use clap::Parser;
 use ratatui::{
     crossterm::event::{self, KeyCode},
-    widgets::ListState,
+    widgets::{ListState, TableState},
 };
 
 use crate::{
@@ -27,9 +27,9 @@ mod loading_screen;
 mod play_screen;
 mod radio_info;
 mod song_queue;
+mod stations_table;
 mod utils;
 
-#[derive(Debug)]
 struct AppModel {
     running_state: RunningState,
     screen: Screen,
@@ -38,6 +38,8 @@ struct AppModel {
     loading_result: Option<CacheResult>,
 
     stations: Vec<Station>,
+    stations_table_state: TableState,
+    stations_filter: String,
 
     playback: PlaybackManager,
     playback_receiver: Receiver<PlaybackUpdate>,
@@ -77,17 +79,19 @@ impl AppModel {
         let mgr = PlaybackManager::new(tx);
 
         Self {
+            stations,
             running_state: RunningState::Running,
             screen,
-            stations,
             loading_percentage: 0,
             loading_result,
             playback: mgr,
             playback_receiver: rx,
             current_title: String::new(),
             current_station: None,
+            stations_filter: String::new(),
             queue: SongQueue::new(10),
             queue_list_state: ListState::default(),
+            stations_table_state: TableState::default(),
             focus: FocusRegion::MainArea,
             config: Config::parse(),
         }
@@ -129,6 +133,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut model = AppModel::new();
 
     let config = Config::parse();
+
     if let Some(station) = config.station() {
         model.playback.set_source_uri(&station.url);
         model.playback.play();
@@ -308,6 +313,9 @@ fn view(model: &mut AppModel, frame: &mut ratatui::Frame) {
                     queue: &model.queue,
                     queue_list_state: &mut model.queue_list_state,
                     focus: &model.focus,
+
+                    stations_table_state: &mut model.stations_table_state,
+                    stations_iter: Box::new(model.stations.search("").take(20)),
                 },
                 frame.area(),
             );

@@ -1,12 +1,15 @@
 use antenna::{playback::PlaybackManager, stations::Station};
 use ratatui::{
     layout::{Constraint, Direction, Layout},
-    widgets::{Block, Borders, List, ListState, Paragraph, Widget},
+    widgets::{Block, Borders, List, ListState, Paragraph, TableState, Widget},
 };
 
 use ratatui::prelude::*;
 
-use crate::{FocusRegion, radio_info::RadioInfo, song_queue::SongQueue, utils::center_vertical};
+use crate::{
+    FocusRegion, radio_info::RadioInfo, song_queue::SongQueue, stations_table::StationsTable,
+    utils::center_vertical,
+};
 
 pub struct PlayScreen<'a> {
     pub playback: &'a PlaybackManager,
@@ -15,6 +18,9 @@ pub struct PlayScreen<'a> {
 
     pub queue: &'a SongQueue,
     pub queue_list_state: &'a mut ListState,
+    pub stations_table_state: &'a mut TableState,
+
+    pub stations_iter: Box<dyn Iterator<Item = &'a Station> + 'a>,
 
     pub focus: &'a FocusRegion,
 }
@@ -37,8 +43,6 @@ impl Widget for PlayScreen<'_> {
             main = main.border_style(Style::new().dim())
         }
 
-        main.render(main_area, buf);
-
         let mut radio_info_block = Block::new().borders(Borders::all()).title_top("Info");
         if *self.focus != FocusRegion::RadioInfo {
             radio_info_block = radio_info_block.border_style(Style::new().dim())
@@ -50,6 +54,15 @@ impl Widget for PlayScreen<'_> {
 
         let [radio_info_area, queue_area] =
             Layout::vertical([Constraint::Max(10), Constraint::Fill(1)]).areas(sidebar_area);
+
+        // Main Area
+        let table = StationsTable {
+            stations: self.stations_iter,
+            state: self.stations_table_state,
+        };
+
+        table.render(main.inner(main_area), buf);
+        main.render(main_area, buf);
 
         // Radio info
         if let Some(station) = self.current_station {
