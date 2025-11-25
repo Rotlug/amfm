@@ -106,6 +106,7 @@ enum Message {
     LoadCache,
     PlaybackMsg(PlaybackUpdate),
     Navigation(KeyCode),
+    Selection,
     Stop,
 }
 
@@ -178,48 +179,55 @@ fn update(model: &mut AppModel, msg: Message) -> Option<Message> {
         }
         Message::Stop => model.playback.stop(),
         Message::Navigation(key) => {
-            model.focus = match key {
-                KeyCode::Right => match model.focus {
-                    FocusRegion::MainArea => FocusRegion::RadioInfo,
-                    _ => return None,
-                },
-                KeyCode::Left => match model.focus {
-                    FocusRegion::RadioInfo | FocusRegion::Queue => {
-                        model.queue_list_state.select(None);
-                        FocusRegion::MainArea
-                    }
-                    _ => return None,
-                },
-                KeyCode::Up => match model.focus {
-                    FocusRegion::Queue => match model.queue_list_state.selected() {
-                        Some(0) | None => {
-                            model.queue_list_state.select(None);
-                            FocusRegion::RadioInfo
-                        }
-                        _ => {
-                            model.queue_list_state.select_previous();
-                            return None;
-                        }
-                    },
-                    _ => return None,
-                },
-                KeyCode::Down => match model.focus {
-                    FocusRegion::RadioInfo => {
-                        model.queue_list_state.select(Some(0));
-                        FocusRegion::Queue
-                    }
-                    FocusRegion::Queue => {
-                        model.queue_list_state.select_next();
-                        return None;
-                    }
-                    _ => return None,
-                },
-                _ => return None,
+            if let Some(new_focus) = handle_navigation(model, key) {
+                model.focus = new_focus;
             }
         }
+        Message::Selection => {}
     }
 
     None
+}
+
+fn handle_navigation(model: &mut AppModel, key: KeyCode) -> Option<FocusRegion> {
+    match key {
+        KeyCode::Right => match model.focus {
+            FocusRegion::MainArea => Some(FocusRegion::RadioInfo),
+            _ => None,
+        },
+        KeyCode::Left => match model.focus {
+            FocusRegion::RadioInfo | FocusRegion::Queue => {
+                model.queue_list_state.select(None);
+                Some(FocusRegion::MainArea)
+            }
+            _ => return None,
+        },
+        KeyCode::Up => match model.focus {
+            FocusRegion::Queue => match model.queue_list_state.selected() {
+                Some(0) | None => {
+                    model.queue_list_state.select(None);
+                    Some(FocusRegion::RadioInfo)
+                }
+                _ => {
+                    model.queue_list_state.select_previous();
+                    return None;
+                }
+            },
+            _ => return None,
+        },
+        KeyCode::Down => match model.focus {
+            FocusRegion::RadioInfo => {
+                model.queue_list_state.select(Some(0));
+                Some(FocusRegion::Queue)
+            }
+            FocusRegion::Queue => {
+                model.queue_list_state.select_next();
+                None
+            }
+            _ => None,
+        },
+        _ => None,
+    }
 }
 
 fn view(model: &mut AppModel, frame: &mut ratatui::Frame) {
@@ -277,6 +285,7 @@ fn handle_key(key: event::KeyEvent) -> Option<Message> {
         KeyCode::Up | KeyCode::Down | KeyCode::Left | KeyCode::Right => {
             Some(Message::Navigation(key.code))
         }
+        KeyCode::Enter => Some(Message::Selection),
         _ => None,
     }
 }
