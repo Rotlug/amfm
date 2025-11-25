@@ -1,6 +1,4 @@
-use std::{fs, path::PathBuf, sync::mpsc, thread, time::Duration};
-
-use crate::cache::CacheResult;
+use std::{fs, path::PathBuf};
 
 pub fn get_cache_dir() -> PathBuf {
     let dir = dirs::cache_dir()
@@ -13,32 +11,6 @@ pub fn get_cache_dir() -> PathBuf {
     }
 
     dir
-}
-
-pub fn get_temp_dir() -> PathBuf {
-    std::env::temp_dir()
-}
-
-pub fn get_music_directory() -> PathBuf {
-    dirs::audio_dir().expect("Audio directory should exist")
-}
-
-fn mock_loading() -> CacheResult {
-    let (tx, rx) = mpsc::channel();
-
-    let handle = thread::spawn(move || {
-        let mut count = 0;
-
-        while count < 100 {
-            tx.send(count).unwrap();
-            thread::sleep(Duration::from_millis(30));
-            count += 1;
-        }
-
-        Ok(vec![])
-    });
-
-    CacheResult { rx, handle }
 }
 
 #[cfg(test)]
@@ -54,10 +26,5 @@ mod tests {
         // Check again to see that it doesn't crash when attempting
         // To create the directory twice
         get_cache_dir();
-    }
-
-    #[test]
-    fn music_dir() {
-        get_music_directory();
     }
 }
