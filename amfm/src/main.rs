@@ -48,6 +48,8 @@ struct AppModel {
     queue_list_state: ListState,
 
     focus: FocusRegion,
+
+    config: Config,
 }
 
 impl AppModel {
@@ -86,6 +88,7 @@ impl AppModel {
             queue: SongQueue::new(10),
             queue_list_state: ListState::default(),
             focus: FocusRegion::MainArea,
+            config: Config::parse(),
         }
     }
 }
@@ -163,7 +166,8 @@ fn update(model: &mut AppModel, msg: Message) -> Option<Message> {
 
                 model.current_title = name.clone();
 
-                let song = Song::from(name);
+                let song = Song::new(name, model.config.temp_song_location.clone());
+
                 model.playback.start_recording(song.path.clone());
 
                 model

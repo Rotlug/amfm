@@ -6,20 +6,19 @@ pub struct Song {
     pub path: PathBuf,
 }
 
-impl From<&str> for Song {
-    fn from(value: &str) -> Self {
+impl Song {
+    pub fn new(title: String, dir: PathBuf) -> Self {
         Self {
-            path: PathBuf::from(format!("/tmp/{value}.ogg")),
-            title: value.to_owned(),
+            path: dir.join(format!("{title}.ogg")),
+            title,
         }
     }
-}
 
-impl From<String> for Song {
-    fn from(value: String) -> Self {
+    #[cfg(test)]
+    fn mock(title: &str) -> Self {
         Self {
-            path: PathBuf::from(format!("/tmp/{value}.ogg")),
-            title: value.to_owned(),
+            path: PathBuf::from(title),
+            title: title.to_string(),
         }
     }
 }
@@ -86,18 +85,18 @@ mod tests {
     #[test]
     fn add_to_queue() {
         let mut queue = SongQueue::new(10);
-        queue.insert(Song::from("a")).unwrap();
-        queue.insert(Song::from("b")).unwrap();
-        queue.insert(Song::from("c")).unwrap();
-        queue.insert(Song::from("d")).unwrap();
+        queue.insert(Song::mock("a")).unwrap();
+        queue.insert(Song::mock("b")).unwrap();
+        queue.insert(Song::mock("c")).unwrap();
+        queue.insert(Song::mock("d")).unwrap();
 
         assert_eq!(
             queue.queue,
             vec![
-                Song::from("d"),
-                Song::from("c"),
-                Song::from("b"),
-                Song::from("a")
+                Song::mock("d"),
+                Song::mock("c"),
+                Song::mock("b"),
+                Song::mock("a")
             ]
         )
     }
@@ -107,12 +106,13 @@ mod tests {
         let mut queue = SongQueue::new(3);
 
         for i in 0..=5 {
-            queue.insert(Song::from(i.to_string())).unwrap();
+            let name = i.to_string();
+            queue.insert(Song::mock(&name)).unwrap();
         }
 
         assert_eq!(
             queue.queue,
-            vec![Song::from("5"), Song::from("4"), Song::from("3")]
+            vec![Song::mock("5"), Song::mock("4"), Song::mock("3")]
         );
     }
 }

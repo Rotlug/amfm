@@ -20,26 +20,26 @@ fn get_default_save_directory() -> PathBuf {
     dir
 }
 
-#[derive(Parser)]
+#[derive(Parser, Debug)]
 #[command(version, about, long_about=None)]
 pub struct Config {
     /// How many songs can be in the queue at any given time
     #[arg(short, long, default_value_t = 10)]
-    max_queue_size: usize,
+    pub max_queue_size: usize,
 
     /// Where queued songs get stored if the user does not
     /// Save them permenantly
 
     #[arg(long, default_value = get_default_temp_dir().into_os_string())]
-    temp_song_location: PathBuf,
+    pub temp_song_location: PathBuf,
 
     /// Where permenantly saved songs go
     #[arg(long, default_value = get_default_save_directory().into_os_string())]
-    saved_song_location: PathBuf,
+    pub saved_song_location: PathBuf,
 
     /// Start the program already playing some station (URL)
     #[arg(short, long)]
-    initial_station: Option<String>,
+    pub initial_station: Option<String>,
 }
 
 impl Config {
