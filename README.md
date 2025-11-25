@@ -13,5 +13,8 @@ Build requirements are defined in `Cargo.toml`. However, the following packages 
 * `openssl`
 * `gstreamer` and its various plugins (good, bad, ugly...)
 
+## Usage
+Run `amfm --help` to see all options and flags that can be used with the program.
+
 ## Special Thanks
 Thank you very much to the [Shortwave](https://gitlab.gnome.org/World/Shortwave) developers as teh GStreamer backend code is taken from that app
