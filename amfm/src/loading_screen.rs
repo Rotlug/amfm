@@ -1,4 +1,3 @@
-use ratatui::layout::Flex;
 use ratatui::prelude::*;
 use ratatui::widgets::{Gauge, Paragraph, Widget};
 
