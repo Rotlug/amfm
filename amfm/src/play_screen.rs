@@ -51,7 +51,7 @@ impl Widget for PlayScreen<'_> {
         .areas(main_area);
 
         // Blocks
-        let mut main = Block::new().borders(Borders::all()).title_top("Main Area");
+        let mut main = Block::new().borders(Borders::all()).title_top("Stations");
         if *self.focus != FocusRegion::MainArea {
             main = main.border_style(Style::new().dim())
         }
@@ -113,7 +113,7 @@ impl Widget for PlayScreen<'_> {
         queue_block.render(queue_area, buf);
 
         // Search bar
-        let text_input = Paragraph::new(self.search_input.value());
+        let text_input = Paragraph::new(self.search_input.value()).cyan();
         text_input.render(search_area, buf);
     }
 }
