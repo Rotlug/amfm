@@ -42,6 +42,7 @@ struct AppModel {
     stations_table_state: TableState,
     stations_search: Input,
     search_toggled: bool,
+    last_selected_station: usize,
 
     playback: PlaybackManager,
     playback_receiver: Receiver<PlaybackUpdate>,
@@ -94,6 +95,7 @@ impl AppModel {
             current_title: String::new(),
             current_station: None,
             stations_search: "".into(),
+            last_selected_station: 0,
             queue: SongQueue::new(10),
             queue_list_state: ListState::default(),
             stations_table_state,
@@ -267,12 +269,18 @@ fn stop(model: &mut AppModel) {
 fn handle_navigation(model: &mut AppModel, key: KeyCode) -> Option<FocusRegion> {
     match key {
         KeyCode::Right => match model.focus {
-            FocusRegion::MainArea => Some(FocusRegion::RadioInfo),
+            FocusRegion::MainArea => {
+                model.stations_table_state.select(None);
+                Some(FocusRegion::RadioInfo)
+            }
             _ => None,
         },
         KeyCode::Left => match model.focus {
             FocusRegion::RadioInfo | FocusRegion::Queue => {
                 model.queue_list_state.select(None);
+                model
+                    .stations_table_state
+                    .select(Some(model.last_selected_station));
                 Some(FocusRegion::MainArea)
             }
             _ => None,
@@ -290,6 +298,7 @@ fn handle_navigation(model: &mut AppModel, key: KeyCode) -> Option<FocusRegion> 
             },
             FocusRegion::MainArea => {
                 model.stations_table_state.select_previous();
+                model.last_selected_station = model.stations_table_state.selected().unwrap();
                 None
             }
             _ => None,
@@ -305,6 +314,7 @@ fn handle_navigation(model: &mut AppModel, key: KeyCode) -> Option<FocusRegion> 
             }
             FocusRegion::MainArea => {
                 model.stations_table_state.select_next();
+                model.last_selected_station = model.stations_table_state.selected().unwrap();
                 None
             }
         },
