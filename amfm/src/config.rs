@@ -50,6 +50,7 @@ impl Config {
                 url: url.to_string(),
                 name: url.to_string(),
                 country: "Local".to_string(),
+                votes: 0,
             });
         }
 

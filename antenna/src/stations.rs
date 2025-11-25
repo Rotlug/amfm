@@ -1,7 +1,11 @@
+use std::cmp::Ordering;
+
 use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Serialize, Debug, PartialEq, Clone)]
+#[derive(Deserialize, Serialize, Debug, PartialEq, Eq, PartialOrd, Ord, Clone)]
 pub struct Station {
+    pub votes: i32,
+
     #[serde(rename = "stationuuid")]
     pub id: String,
 
@@ -18,6 +22,7 @@ impl Station {
             id: "".to_string(),
             country: country.to_string(),
             name: name.to_string(),
+            votes: 0,
         }
     }
 }

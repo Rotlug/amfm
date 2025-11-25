@@ -88,8 +88,16 @@ fn create_bin() -> Result<Vec<Station>, CacheError> {
 
     let reader = BufReader::new(file);
 
-    let data: Vec<Station> =
+    let mut data: Vec<Station> =
         serde_json::from_reader(reader).map_err(CacheError::JsonDecodeError)?;
+
+    // Trim all station names
+    for station in &mut data {
+        station.name = station.name.trim().to_string();
+    }
+
+    // Sort from most votes to least
+    data.sort_by(|a, b| b.cmp(a));
 
     let mut output_file =
         File::create(utils::get_cache_dir().join("stations.bin")).map_err(CacheError::IoError)?;
