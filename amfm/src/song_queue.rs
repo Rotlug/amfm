@@ -76,6 +76,11 @@ impl SongQueue {
     pub fn find_by_title(&self, title: &str) -> Option<&Song> {
         self.queue.iter().find(|s| s.title == title)
     }
+
+    /// Remove some song from the queue by index
+    pub fn remove(&mut self, index: usize) {
+        let _ = self.queue.remove(index);
+    }
 }
 
 #[cfg(test)]

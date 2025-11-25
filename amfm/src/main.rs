@@ -1,5 +1,6 @@
 use std::{
     error::Error,
+    fs,
     sync::mpsc::{self, Receiver},
     time::Duration,
 };
@@ -153,7 +154,13 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 fn update(model: &mut AppModel, msg: Message) -> Option<Message> {
     match msg {
-        Message::Quit => model.running_state = RunningState::Done,
+        Message::Quit => {
+            model.running_state = {
+                model.playback.stop_recording(true);
+                model.queue.discard();
+                RunningState::Done
+            }
+        }
         Message::LoadingPercentage(percent) => model.loading_percentage = percent,
         Message::ChangeScreen(screen) => model.screen = screen,
         Message::LoadCache => {
@@ -183,7 +190,25 @@ fn update(model: &mut AppModel, msg: Message) -> Option<Message> {
                 model.focus = new_focus;
             }
         }
-        Message::Selection => {}
+        Message::Selection => {
+            if let Some(index) = model.queue_list_state.selected()
+                && index != 0 // First song still being recorded
+                && let Some(song) = model.queue.get(index)
+            {
+                // Save song permanently
+                fs::rename(
+                    song.path.clone(),
+                    model
+                        .config
+                        .saved_song_location
+                        .join(format!("{}.ogg", song.title)),
+                )
+                .expect("Could not save song permanently!");
+
+                // Remove from queue
+                model.queue.remove(index);
+            }
+        }
     }
 
     None
@@ -200,7 +225,7 @@ fn handle_navigation(model: &mut AppModel, key: KeyCode) -> Option<FocusRegion> 
                 model.queue_list_state.select(None);
                 Some(FocusRegion::MainArea)
             }
-            _ => return None,
+            _ => None,
         },
         KeyCode::Up => match model.focus {
             FocusRegion::Queue => match model.queue_list_state.selected() {
@@ -210,10 +235,10 @@ fn handle_navigation(model: &mut AppModel, key: KeyCode) -> Option<FocusRegion> 
                 }
                 _ => {
                     model.queue_list_state.select_previous();
-                    return None;
+                    None
                 }
             },
-            _ => return None,
+            _ => None,
         },
         KeyCode::Down => match model.focus {
             FocusRegion::RadioInfo => {
@@ -227,32 +252,6 @@ fn handle_navigation(model: &mut AppModel, key: KeyCode) -> Option<FocusRegion> 
             _ => None,
         },
         _ => None,
-    }
-}
-
-fn view(model: &mut AppModel, frame: &mut ratatui::Frame) {
-    match model.screen {
-        Screen::Loading => {
-            frame.render_widget(
-                loading_screen::LoadingScreen {
-                    percentage: model.loading_percentage,
-                },
-                frame.area(),
-            );
-        }
-        Screen::Play => {
-            frame.render_widget(
-                play_screen::PlayScreen {
-                    playback: &model.playback,
-                    current_title: &model.current_title,
-                    current_station: model.current_station.clone(),
-                    queue: &model.queue,
-                    queue_list_state: &mut model.queue_list_state,
-                    focus: &model.focus,
-                },
-                frame.area(),
-            );
-        }
     }
 }
 
@@ -287,5 +286,31 @@ fn handle_key(key: event::KeyEvent) -> Option<Message> {
         }
         KeyCode::Enter => Some(Message::Selection),
         _ => None,
+    }
+}
+
+fn view(model: &mut AppModel, frame: &mut ratatui::Frame) {
+    match model.screen {
+        Screen::Loading => {
+            frame.render_widget(
+                loading_screen::LoadingScreen {
+                    percentage: model.loading_percentage,
+                },
+                frame.area(),
+            );
+        }
+        Screen::Play => {
+            frame.render_widget(
+                play_screen::PlayScreen {
+                    playback: &model.playback,
+                    current_title: &model.current_title,
+                    current_station: model.current_station.clone(),
+                    queue: &model.queue,
+                    queue_list_state: &mut model.queue_list_state,
+                    focus: &model.focus,
+                },
+                frame.area(),
+            );
+        }
     }
 }
