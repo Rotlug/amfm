@@ -344,7 +344,7 @@ fn view(model: &mut AppModel, frame: &mut ratatui::Frame) {
                         model
                             .stations
                             .search(model.stations_search.value())
-                            .take(20),
+                            .take((frame.area().height - 4).into()),
                     ),
 
                     search_toggled: model.search_toggled,
