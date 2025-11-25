@@ -29,7 +29,6 @@ pub struct Config {
 
     /// Where queued songs get stored if the user does not
     /// Save them permenantly
-
     #[arg(long, default_value = get_default_temp_dir().into_os_string())]
     pub temp_song_location: PathBuf,
 
@@ -40,6 +39,10 @@ pub struct Config {
     /// Start the program already playing some station (URL)
     #[arg(short, long)]
     pub initial_station: Option<String>,
+
+    /// Wether to record songs to disk
+    #[arg(short, long, default_value_t = true)]
+    pub record: bool,
 }
 
 impl Config {

@@ -188,7 +188,9 @@ fn update(model: &mut AppModel, msg: Message) -> Option<Message> {
 
                 let song = Song::new(name, model.config.temp_song_location.clone());
 
-                model.playback.start_recording(song.path.clone());
+                if model.config.record {
+                    model.playback.start_recording(song.path.clone());
+                }
 
                 model
                     .queue
@@ -243,6 +245,7 @@ fn update(model: &mut AppModel, msg: Message) -> Option<Message> {
         }
         Message::ToggleSearch(toggled) => {
             model.search_toggled = toggled;
+            model.focus = FocusRegion::MainArea
         }
         Message::SearchEvent(event) => {
             model.stations_search.handle_event(&event);
