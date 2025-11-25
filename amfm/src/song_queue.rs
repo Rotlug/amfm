@@ -37,7 +37,7 @@ impl SongQueue {
     pub fn new(max_size: usize) -> Self {
         Self {
             max_size,
-            queue: VecDeque::new(),
+            queue: VecDeque::with_capacity(max_size),
         }
     }
 
