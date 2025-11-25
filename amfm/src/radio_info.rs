@@ -44,12 +44,11 @@ impl Widget for RadioInfo<'_> {
             recording = recording.black().on_white()
         }
 
-        let [name_area, current_song_area, _, recording_area] = Layout::new(
+        let [name_area, current_song_area, recording_area] = Layout::new(
             Direction::Vertical,
             [
                 Constraint::Length(name.line_count(area.width) as u16),
                 Constraint::Length(current_song.line_count(area.width) as u16),
-                Constraint::Length(1), // Just margin
                 Constraint::Length(1),
             ],
         )
