@@ -13,9 +13,10 @@ use antenna::{
 
 use clap::Parser;
 use ratatui::{
-    crossterm::event::{self, KeyCode},
+    crossterm::event::{self, Event, KeyCode},
     widgets::{ListState, TableState},
 };
+use tui_input::{Input, backend::crossterm::EventHandler};
 
 use crate::{
     config::Config,
@@ -39,7 +40,8 @@ struct AppModel {
 
     stations: Vec<Station>,
     stations_table_state: TableState,
-    stations_filter: String,
+    stations_search: Input,
+    search_toggled: bool,
 
     playback: PlaybackManager,
     playback_receiver: Receiver<PlaybackUpdate>,
@@ -88,12 +90,13 @@ impl AppModel {
             playback_receiver: rx,
             current_title: String::new(),
             current_station: None,
-            stations_filter: String::new(),
+            stations_search: "".into(),
             queue: SongQueue::new(10),
             queue_list_state: ListState::default(),
             stations_table_state: TableState::default(),
             focus: FocusRegion::MainArea,
             config: Config::parse(),
+            search_toggled: false,
         }
     }
 }
@@ -112,6 +115,8 @@ enum Message {
     PlaybackMsg(PlaybackUpdate),
     Navigation(KeyCode),
     Selection,
+    ToggleSearch(bool),
+    SearchEvent(Event),
     Stop,
 }
 
@@ -214,6 +219,15 @@ fn update(model: &mut AppModel, msg: Message) -> Option<Message> {
                 model.queue.remove(index);
             }
         }
+        Message::ToggleSearch(toggled) => {
+            model.search_toggled = toggled;
+            if !toggled {
+                model.stations_search.reset();
+            }
+        }
+        Message::SearchEvent(event) => {
+            model.stations_search.handle_event(&event);
+        }
     }
 
     None
@@ -276,20 +290,31 @@ fn handle_event(model: &AppModel) -> Result<Option<Message>, Box<dyn Error>> {
         && let event::Event::Key(key) = event::read()?
         && key.kind == event::KeyEventKind::Press
     {
-        return Ok(handle_key(key));
+        if KeyCode::Char('/') != key.code && KeyCode::Enter != key.code && model.search_toggled {
+            return Ok(Some(Message::SearchEvent(Event::Key(key))));
+        }
+
+        return Ok(handle_key(model, key));
     }
 
     Ok(None)
 }
 
-fn handle_key(key: event::KeyEvent) -> Option<Message> {
+fn handle_key(model: &AppModel, key: event::KeyEvent) -> Option<Message> {
     match key.code {
         KeyCode::Char('q') => Some(Message::Quit),
         KeyCode::Char('s') => Some(Message::Stop),
+        KeyCode::Char('/') => Some(Message::ToggleSearch(!model.search_toggled)),
         KeyCode::Up | KeyCode::Down | KeyCode::Left | KeyCode::Right => {
             Some(Message::Navigation(key.code))
         }
-        KeyCode::Enter => Some(Message::Selection),
+        KeyCode::Enter => {
+            if model.search_toggled {
+                Some(Message::ToggleSearch(false))
+            } else {
+                Some(Message::Selection)
+            }
+        }
         _ => None,
     }
 }
@@ -315,10 +340,25 @@ fn view(model: &mut AppModel, frame: &mut ratatui::Frame) {
                     focus: &model.focus,
 
                     stations_table_state: &mut model.stations_table_state,
-                    stations_iter: Box::new(model.stations.search("").take(20)),
+                    stations_iter: Box::new(
+                        model
+                            .stations
+                            .search(model.stations_search.value())
+                            .take(20),
+                    ),
+
+                    search_toggled: model.search_toggled,
+                    search_input: &model.stations_search,
                 },
                 frame.area(),
             );
+
+            if model.search_toggled {
+                frame.set_cursor_position((
+                    model.stations_search.cursor() as u16,
+                    frame.area().height - 1,
+                ));
+            }
         }
     }
 }

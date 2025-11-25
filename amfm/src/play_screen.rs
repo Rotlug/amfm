@@ -5,6 +5,7 @@ use ratatui::{
 };
 
 use ratatui::prelude::*;
+use tui_input::Input;
 
 use crate::{
     FocusRegion, radio_info::RadioInfo, song_queue::SongQueue, stations_table::StationsTable,
@@ -23,6 +24,9 @@ pub struct PlayScreen<'a> {
     pub stations_iter: Box<dyn Iterator<Item = &'a Station> + 'a>,
 
     pub focus: &'a FocusRegion,
+
+    pub search_input: &'a Input,
+    pub search_toggled: bool,
 }
 
 impl Widget for PlayScreen<'_> {
@@ -36,6 +40,15 @@ impl Widget for PlayScreen<'_> {
             [Constraint::Percentage(70), Constraint::Percentage(30)],
         )
         .areas(area);
+
+        let [main_area, search_area] = Layout::new(
+            Direction::Vertical,
+            [
+                Constraint::Fill(1),
+                Constraint::Length(if self.search_toggled { 1 } else { 0 }),
+            ],
+        )
+        .areas(main_area);
 
         // Blocks
         let mut main = Block::new().borders(Borders::all()).title_top("Main Area");
@@ -98,5 +111,9 @@ impl Widget for PlayScreen<'_> {
         );
 
         queue_block.render(queue_area, buf);
+
+        // Search bar
+        let text_input = Paragraph::new(self.search_input.value());
+        text_input.render(search_area, buf);
     }
 }
