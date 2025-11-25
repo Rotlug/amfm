@@ -154,8 +154,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         let mut current_msg = handle_event(&model)?;
 
-        while current_msg.is_some() {
-            current_msg = update(&mut model, current_msg.unwrap())
+        while let Some(msg) = current_msg {
+            current_msg = update(&mut model, msg)
         }
     }
 
@@ -301,7 +301,9 @@ fn handle_navigation(model: &mut AppModel, key: KeyCode) -> Option<FocusRegion> 
             },
             FocusRegion::MainArea => {
                 model.stations_table_state.select_previous();
-                model.last_selected_station = model.stations_table_state.selected().unwrap();
+                if let Some(index) = model.stations_table_state.selected() {
+                    model.last_selected_station = index;
+                }
                 None
             }
             _ => None,
@@ -317,7 +319,9 @@ fn handle_navigation(model: &mut AppModel, key: KeyCode) -> Option<FocusRegion> 
             }
             FocusRegion::MainArea => {
                 model.stations_table_state.select_next();
-                model.last_selected_station = model.stations_table_state.selected().unwrap();
+                if let Some(index) = model.stations_table_state.selected() {
+                    model.last_selected_station = index;
+                }
                 None
             }
         },
@@ -327,7 +331,11 @@ fn handle_navigation(model: &mut AppModel, key: KeyCode) -> Option<FocusRegion> 
 
 fn handle_event(model: &AppModel) -> Result<Option<Message>, Box<dyn Error>> {
     if model.screen == Screen::Loading {
-        let rx = &model.loading_result.as_ref().unwrap().rx;
+        let Some(cr) = &model.loading_result else {
+            return Ok(Some(Message::ChangeScreen(Screen::Play)));
+        };
+
+        let rx = &cr.rx;
 
         return match rx.recv() {
             Ok(new_percentage) => Ok(Some(Message::LoadingPercentage(new_percentage))),
