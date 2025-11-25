@@ -389,6 +389,12 @@ fn view(model: &mut AppModel, frame: &mut ratatui::Frame) {
             );
         }
         Screen::Play => {
+            let song_count = if frame.area().height < 4 {
+                1
+            } else {
+                (frame.area().height - 4).into()
+            };
+
             frame.render_widget(
                 play_screen::PlayScreen {
                     playback: &model.playback,
@@ -403,7 +409,7 @@ fn view(model: &mut AppModel, frame: &mut ratatui::Frame) {
                         model
                             .stations
                             .search(model.stations_search.value())
-                            .take((frame.area().height - 4).into()),
+                            .take(song_count),
                     ),
 
                     search_toggled: model.search_toggled,
