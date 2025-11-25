@@ -14,4 +14,4 @@ Build requirements are defined in `Cargo.toml`. However, the following packages 
 * `gstreamer` and its various plugins (good, bad, ugly...)
 
 ## Special Thanks
-Thank you very much to the ![Shortwave](https://gitlab.gnome.org/World/Shortwave) developers as teh GStreamer backend code is taken from that app
+Thank you very much to the [Shortwave](https://gitlab.gnome.org/World/Shortwave) developers as teh GStreamer backend code is taken from that app
