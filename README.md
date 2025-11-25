@@ -3,7 +3,7 @@
 amfm is a TUI (Terminal User Interface) to browse, play, and save songs from various internet radio stations (The list of which is provided via [radio-browser.info](https://www.radio-browser.info/))
 
 ## Planned features
-- [ ] Initial user interface - Search stations
+- [x] Initial user interface - Search stations
 - [x] Playback
 - [x] Save songs by name
 

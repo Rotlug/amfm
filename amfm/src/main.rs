@@ -80,6 +80,9 @@ impl AppModel {
         PlaybackManager::init();
         let mgr = PlaybackManager::new(tx);
 
+        let mut stations_table_state = TableState::default();
+        stations_table_state.select(Some(0));
+
         Self {
             stations,
             running_state: RunningState::Running,
@@ -93,7 +96,7 @@ impl AppModel {
             stations_search: "".into(),
             queue: SongQueue::new(10),
             queue_list_state: ListState::default(),
-            stations_table_state: TableState::default(),
+            stations_table_state,
             focus: FocusRegion::MainArea,
             config: Config::parse(),
             search_toggled: false,
@@ -140,10 +143,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let config = Config::parse();
 
     if let Some(station) = config.station() {
-        model.playback.set_source_uri(&station.url);
-        model.playback.play();
-
-        model.current_station = Some(station);
+        play_station(&mut model, &station);
     }
 
     while model.running_state != RunningState::Done {
@@ -201,29 +201,46 @@ fn update(model: &mut AppModel, msg: Message) -> Option<Message> {
             }
         }
         Message::Selection => {
-            if let Some(index) = model.queue_list_state.selected()
+            match model.focus {
+                FocusRegion::Queue => {
+                    if let Some(index) = model.queue_list_state.selected()
                 && index != 0 // First song still being recorded
                 && let Some(song) = model.queue.get(index)
-            {
-                // Save song permanently
-                fs::rename(
-                    song.path.clone(),
-                    model
-                        .config
-                        .saved_song_location
-                        .join(format!("{}.ogg", song.title)),
-                )
-                .expect("Could not save song permanently!");
+                    {
+                        // Save song permanently
+                        fs::rename(
+                            song.path.clone(),
+                            model
+                                .config
+                                .saved_song_location
+                                .join(format!("{}.ogg", song.title)),
+                        )
+                        .expect("Could not save song permanently!");
 
-                // Remove from queue
-                model.queue.remove(index);
+                        // Remove from queue
+                        model.queue.remove(index);
+                    }
+                }
+                FocusRegion::MainArea => {
+                    if let Some(index) = model.stations_table_state.selected() {
+                        let station = {
+                            model
+                                .stations
+                                .search(model.stations_search.value())
+                                .nth(index)
+                                .cloned()
+                        };
+
+                        if let Some(station) = station {
+                            play_station(model, &station);
+                        }
+                    }
+                }
+                _ => {}
             }
         }
         Message::ToggleSearch(toggled) => {
             model.search_toggled = toggled;
-            if !toggled {
-                model.stations_search.reset();
-            }
         }
         Message::SearchEvent(event) => {
             model.stations_search.handle_event(&event);
@@ -231,6 +248,20 @@ fn update(model: &mut AppModel, msg: Message) -> Option<Message> {
     }
 
     None
+}
+
+/// Play a station
+fn play_station(model: &mut AppModel, station: &Station) {
+    model.playback.stop();
+    model.playback.set_source_uri(&station.url);
+    model.current_station = Some(station.clone());
+    model.playback.play();
+}
+
+/// Stop playback
+fn stop(model: &mut AppModel) {
+    model.playback.stop_recording(true);
+    model.playback.stop();
 }
 
 fn handle_navigation(model: &mut AppModel, key: KeyCode) -> Option<FocusRegion> {
@@ -257,6 +288,10 @@ fn handle_navigation(model: &mut AppModel, key: KeyCode) -> Option<FocusRegion> 
                     None
                 }
             },
+            FocusRegion::MainArea => {
+                model.stations_table_state.select_previous();
+                None
+            }
             _ => None,
         },
         KeyCode::Down => match model.focus {
@@ -268,7 +303,10 @@ fn handle_navigation(model: &mut AppModel, key: KeyCode) -> Option<FocusRegion> 
                 model.queue_list_state.select_next();
                 None
             }
-            _ => None,
+            FocusRegion::MainArea => {
+                model.stations_table_state.select_next();
+                None
+            }
         },
         _ => None,
     }
