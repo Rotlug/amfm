@@ -1,9 +1,7 @@
-use std::borrow::Cow;
-
 use antenna::stations::Station;
 use ratatui::{
     layout::Constraint,
-    style::Stylize,
+    style::{Style, Stylize},
     widgets::{Row, StatefulWidget, Table, TableState, Widget},
 };
 
@@ -21,7 +19,10 @@ impl Widget for StationsTable<'_> {
 
         let widths = [Constraint::Fill(1), Constraint::Max(30)];
 
-        let table = Table::new(rows, widths).column_spacing(1).header(header());
+        let table = Table::new(rows, widths)
+            .column_spacing(1)
+            .header(header())
+            .row_highlight_style(Style::new().white().on_green().bold());
 
         StatefulWidget::render(table, area, buf, self.state);
     }
