@@ -1,5 +1,7 @@
 # amfm - Internet radio for the terminal
 
+![Screenshot of amfm](./amfm.png)
+
 amfm is a TUI (Terminal User Interface) to browse, play, and save songs from various internet radio stations (The list of which is provided via [radio-browser.info](https://www.radio-browser.info/))
 
 ## Planned features
