@@ -53,6 +53,7 @@ impl SongQueue {
     }
 
     /// Used to delete all temporary songs at the end of the program
+    /// NOTE: Does not clear the queue!
     pub fn discard(&self) {
         for song in &self.queue {
             if song.path.exists() {
@@ -72,6 +73,7 @@ impl SongQueue {
     }
 
     /// Remove some song from the queue by index
+    /// NOTE: Does not delete the file!
     pub fn remove(&mut self, index: usize) {
         let _ = self.queue.remove(index);
     }
