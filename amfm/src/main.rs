@@ -274,7 +274,7 @@ fn handle_navigation(model: &mut AppModel, key: KeyCode) -> Option<FocusRegion> 
         KeyCode::Right => match model.focus {
             FocusRegion::MainArea => {
                 model.stations_table_state.select(None);
-                Some(FocusRegion::RadioInfo)
+                Some(FocusRegion::Queue)
             }
             _ => None,
         },
