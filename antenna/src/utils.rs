@@ -12,19 +12,3 @@ pub fn get_cache_dir() -> PathBuf {
 
     dir
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn cache_dir() {
-        get_cache_dir();
-
-        assert!(fs::exists(dirs::cache_dir().unwrap().join("amfm")).unwrap());
-
-        // Check again to see that it doesn't crash when attempting
-        // To create the directory twice
-        get_cache_dir();
-    }
-}

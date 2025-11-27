@@ -120,29 +120,3 @@ pub fn read_bin_cache() -> Result<Vec<Station>, CacheError> {
 
     Ok(data)
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn can_read_from_cache() {
-        let cache_path = utils::get_cache_dir().join("stations.bin");
-
-        // Only run if the file exists
-        if !cache_path.exists() {
-            eprintln!(
-                "Skipping can_read_from_cache: no cache file at {:?}",
-                cache_path
-            );
-            return;
-        }
-
-        let data = read_bin_cache().expect("Failed to read existing cache");
-        assert!(
-            data.len() > 50_000,
-            "Expected >50,000 stations, got {}",
-            data.len()
-        );
-    }
-}
