@@ -13,6 +13,7 @@ amfm is a TUI (Terminal User Interface) to browse, play, and save songs from var
 Build requirements are defined in `Cargo.toml`. However, the following packages need to be installed as well:
 * `pkg-config`
 * `openssl`
+* `glib`
 * `gstreamer` and its various plugins (good, bad, ugly...)
 
 ## Usage
