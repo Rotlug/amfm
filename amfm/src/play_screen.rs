@@ -1,7 +1,6 @@
 use antenna::stations::StationList;
 use ratatui::{
     prelude::*,
-    text::ToSpan,
     widgets::{Block, Borders, List, Paragraph},
 };
 
