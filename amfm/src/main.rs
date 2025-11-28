@@ -56,6 +56,8 @@ pub struct AppModel {
     pub focus: FocusRegion,
 
     pub config: Config,
+
+    pub last_update: PlaybackUpdate,
 }
 
 impl AppModel {
@@ -102,6 +104,7 @@ impl AppModel {
             focus: FocusRegion::MainArea,
             config: Config::parse(),
             search_toggled: false,
+            last_update: PlaybackUpdate::Loading,
         }
     }
 }
@@ -181,6 +184,7 @@ fn update(model: &mut AppModel, msg: Message) -> Option<Message> {
             return Some(Message::ChangeScreen(Screen::Play));
         }
         Message::PlaybackMsg(msg) => {
+            model.last_update = msg.clone();
             if let PlaybackUpdate::NewSong(name) = msg {
                 model.playback.stop_recording(true);
 

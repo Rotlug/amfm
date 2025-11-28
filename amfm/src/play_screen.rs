@@ -74,6 +74,7 @@ impl Widget for PlayScreen<'_> {
                 name: &station.name,
                 current_song: &self.model.current_title,
                 is_recording: self.model.playback.is_recording(),
+                last_update: &self.model.last_update,
             };
 
             radio_info.render(radio_info_block.inner(radio_info_area), buf);

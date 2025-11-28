@@ -37,7 +37,7 @@ impl BufferingState {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum PlaybackUpdate {
     Playing,
     Stopped,

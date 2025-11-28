@@ -1,3 +1,4 @@
+use antenna::playback::PlaybackUpdate;
 use ratatui::prelude::*;
 use ratatui::widgets::{Paragraph, Widget, Wrap};
 
@@ -10,6 +11,7 @@ pub struct RadioInfo<'a> {
     pub name: &'a str,
     pub current_song: &'a str,
     pub is_recording: bool,
+    pub last_update: &'a PlaybackUpdate,
 }
 
 impl Widget for RadioInfo<'_> {
@@ -44,12 +46,29 @@ impl Widget for RadioInfo<'_> {
             recording = recording.black().on_white()
         }
 
-        let [name_area, current_song_area, recording_area] = Layout::new(
+        // Last Update
+        let last_update = match self.last_update {
+            PlaybackUpdate::Loading => Paragraph::new("Loading...").dim().italic().centered(),
+            PlaybackUpdate::Stopped => Paragraph::new("Stopped.").dim().italic().centered(),
+            PlaybackUpdate::Error(msg) => Paragraph::new(msg.clone())
+                .red()
+                .wrap(Wrap { trim: true })
+                .centered(),
+            _ => Paragraph::new(""),
+        };
+
+        let [
+            name_area,
+            current_song_area,
+            recording_area,
+            last_update_area,
+        ] = Layout::new(
             Direction::Vertical,
             [
                 Constraint::Length(name.line_count(area.width) as u16),
                 Constraint::Length(current_song.line_count(area.width) as u16),
                 Constraint::Length(1),
+                Constraint::Length(last_update.line_count(area.width) as u16),
             ],
         )
         .areas(area);
@@ -60,5 +79,6 @@ impl Widget for RadioInfo<'_> {
             center_horizontal(recording_area, rec_text.len() as u16),
             buf,
         );
+        last_update.render(last_update_area, buf);
     }
 }
