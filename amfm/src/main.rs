@@ -31,31 +31,31 @@ mod song_queue;
 mod stations_table;
 mod utils;
 
-struct AppModel {
-    running_state: RunningState,
-    screen: Screen,
+pub struct AppModel {
+    pub running_state: RunningState,
+    pub screen: Screen,
 
-    loading_percentage: u64,
-    loading_result: Option<CacheResult>,
+    pub loading_percentage: u64,
+    pub loading_result: Option<CacheResult>,
 
-    stations: Vec<Station>,
-    stations_table_state: TableState,
-    stations_search: Input,
-    search_toggled: bool,
-    last_selected_station: usize,
+    pub stations: Vec<Station>,
+    pub stations_table_state: TableState,
+    pub stations_search: Input,
+    pub search_toggled: bool,
+    pub last_selected_station: usize,
 
-    playback: PlaybackManager,
-    playback_receiver: Receiver<PlaybackUpdate>,
+    pub playback: PlaybackManager,
+    pub playback_receiver: Receiver<PlaybackUpdate>,
 
-    current_title: String,
-    current_station: Option<Station>,
+    pub current_title: String,
+    pub current_station: Option<Station>,
 
-    queue: SongQueue,
-    queue_list_state: ListState,
+    pub queue: SongQueue,
+    pub queue_list_state: ListState,
 
-    focus: FocusRegion,
+    pub focus: FocusRegion,
 
-    config: Config,
+    pub config: Config,
 }
 
 impl AppModel {
@@ -389,34 +389,13 @@ fn view(model: &mut AppModel, frame: &mut ratatui::Frame) {
             );
         }
         Screen::Play => {
-            let song_count = if frame.area().height < 4 {
+            let table_size = if frame.area().height < 4 {
                 1
             } else {
                 (frame.area().height - 4).into()
             };
 
-            frame.render_widget(
-                play_screen::PlayScreen {
-                    playback: &model.playback,
-                    current_title: &model.current_title,
-                    current_station: model.current_station.clone(),
-                    queue: &model.queue,
-                    queue_list_state: &mut model.queue_list_state,
-                    focus: &model.focus,
-
-                    stations_table_state: &mut model.stations_table_state,
-                    stations_iter: Box::new(
-                        model
-                            .stations
-                            .search(model.stations_search.value())
-                            .take(song_count),
-                    ),
-
-                    search_toggled: model.search_toggled,
-                    search_input: &model.stations_search,
-                },
-                frame.area(),
-            );
+            frame.render_widget(play_screen::PlayScreen { model, table_size }, frame.area());
 
             if model.search_toggled {
                 frame.set_cursor_position((

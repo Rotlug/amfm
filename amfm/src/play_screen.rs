@@ -1,32 +1,17 @@
-use antenna::{playback::PlaybackManager, stations::Station};
+use antenna::stations::StationList;
 use ratatui::{
-    layout::{Constraint, Direction, Layout},
-    widgets::{Block, Borders, List, ListState, Paragraph, TableState, Widget},
+    prelude::*,
+    widgets::{Block, Borders, List, Paragraph},
 };
 
-use ratatui::prelude::*;
-use tui_input::Input;
-
 use crate::{
-    FocusRegion, radio_info::RadioInfo, song_queue::SongQueue, stations_table::StationsTable,
+    AppModel, FocusRegion, radio_info::RadioInfo, stations_table::StationsTable,
     utils::center_vertical,
 };
 
 pub struct PlayScreen<'a> {
-    pub playback: &'a PlaybackManager,
-    pub current_station: Option<Station>,
-    pub current_title: &'a str,
-
-    pub queue: &'a SongQueue,
-    pub queue_list_state: &'a mut ListState,
-    pub stations_table_state: &'a mut TableState,
-
-    pub stations_iter: Box<dyn Iterator<Item = &'a Station> + 'a>,
-
-    pub focus: &'a FocusRegion,
-
-    pub search_input: &'a Input,
-    pub search_toggled: bool,
+    pub model: &'a mut AppModel,
+    pub table_size: usize,
 }
 
 impl Widget for PlayScreen<'_> {
@@ -34,6 +19,12 @@ impl Widget for PlayScreen<'_> {
     where
         Self: Sized,
     {
+        let stations_iter = self
+            .model
+            .stations
+            .search(self.model.stations_search.value())
+            .take(self.table_size);
+
         // Areas
         let [main_area, sidebar_area] = Layout::new(
             Direction::Horizontal,
@@ -45,23 +36,23 @@ impl Widget for PlayScreen<'_> {
             Direction::Vertical,
             [
                 Constraint::Fill(1),
-                Constraint::Length(if self.search_toggled { 1 } else { 0 }),
+                Constraint::Length(if self.model.search_toggled { 1 } else { 0 }),
             ],
         )
         .areas(main_area);
 
         // Blocks
         let mut main = Block::new().borders(Borders::all()).title_top("Stations");
-        if *self.focus != FocusRegion::MainArea {
+        if self.model.focus != FocusRegion::MainArea {
             main = main.border_style(Style::new().dim())
         }
 
         let mut radio_info_block = Block::new().borders(Borders::all()).title_top("Info");
-        if *self.focus != FocusRegion::RadioInfo {
+        if self.model.focus != FocusRegion::RadioInfo {
             radio_info_block = radio_info_block.border_style(Style::new().dim())
         }
         let mut queue_block = Block::new().borders(Borders::all()).title_top("Queue");
-        if *self.focus != FocusRegion::Queue {
+        if self.model.focus != FocusRegion::Queue {
             queue_block = queue_block.border_style(Style::new().dim())
         }
 
@@ -70,19 +61,19 @@ impl Widget for PlayScreen<'_> {
 
         // Main Area
         let table = StationsTable {
-            stations: self.stations_iter,
-            state: self.stations_table_state,
+            stations: Box::new(stations_iter),
+            state: &mut self.model.stations_table_state,
         };
 
         table.render(main.inner(main_area), buf);
         main.render(main_area, buf);
 
         // Radio info
-        if let Some(station) = self.current_station {
+        if let Some(station) = &self.model.current_station {
             let radio_info = RadioInfo {
                 name: &station.name,
-                current_song: self.current_title,
-                is_recording: self.playback.is_recording(),
+                current_song: &self.model.current_title,
+                is_recording: self.model.playback.is_recording(),
             };
 
             radio_info.render(radio_info_block.inner(radio_info_area), buf);
@@ -100,20 +91,20 @@ impl Widget for PlayScreen<'_> {
         radio_info_block.render(radio_info_area, buf);
 
         // Queue
-        let queue_list = List::new(self.queue.iter().map(|s| s.title.clone()))
+        let queue_list = List::new(self.model.queue.iter().map(|s| s.title.clone()))
             .highlight_style(Style::new().black().on_white());
 
         StatefulWidget::render(
             queue_list,
             queue_block.inner(queue_area),
             buf,
-            self.queue_list_state,
+            &mut self.model.queue_list_state,
         );
 
         queue_block.render(queue_area, buf);
 
         // Search bar
-        let text_input = Paragraph::new(self.search_input.value()).cyan();
+        let text_input = Paragraph::new(self.model.stations_search.value()).cyan();
         text_input.render(search_area, buf);
     }
 }
