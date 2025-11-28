@@ -206,6 +206,21 @@ fn update(model: &mut AppModel, msg: Message) -> Option<Message> {
         Message::Navigation(key) => {
             if let Some(new_focus) = handle_navigation(model, key) {
                 model.focus = new_focus;
+                model
+                    .queue_list_state
+                    .select(if model.focus == FocusRegion::Queue {
+                        Some(0)
+                    } else {
+                        None
+                    });
+
+                model
+                    .stations_table_state
+                    .select(if model.focus == FocusRegion::MainArea {
+                        Some(model.last_selected_station)
+                    } else {
+                        None
+                    });
             }
         }
         Message::Selection => {
@@ -276,28 +291,16 @@ fn stop(model: &mut AppModel) {
 fn handle_navigation(model: &mut AppModel, key: KeyCode) -> Option<FocusRegion> {
     match key {
         KeyCode::Right => match model.focus {
-            FocusRegion::MainArea => {
-                model.stations_table_state.select(None);
-                Some(FocusRegion::Queue)
-            }
+            FocusRegion::MainArea => Some(FocusRegion::Queue),
             _ => None,
         },
         KeyCode::Left => match model.focus {
-            FocusRegion::RadioInfo | FocusRegion::Queue => {
-                model.queue_list_state.select(None);
-                model
-                    .stations_table_state
-                    .select(Some(model.last_selected_station));
-                Some(FocusRegion::MainArea)
-            }
+            FocusRegion::RadioInfo | FocusRegion::Queue => Some(FocusRegion::MainArea),
             _ => None,
         },
         KeyCode::Up => match model.focus {
             FocusRegion::Queue => match model.queue_list_state.selected() {
-                Some(0) | None => {
-                    model.queue_list_state.select(None);
-                    Some(FocusRegion::RadioInfo)
-                }
+                Some(0) | None => Some(FocusRegion::RadioInfo),
                 _ => {
                     model.queue_list_state.select_previous();
                     None
@@ -313,10 +316,7 @@ fn handle_navigation(model: &mut AppModel, key: KeyCode) -> Option<FocusRegion> 
             _ => None,
         },
         KeyCode::Down => match model.focus {
-            FocusRegion::RadioInfo => {
-                model.queue_list_state.select(Some(0));
-                Some(FocusRegion::Queue)
-            }
+            FocusRegion::RadioInfo => Some(FocusRegion::Queue),
             FocusRegion::Queue => {
                 model.queue_list_state.select_next();
                 None
