@@ -110,7 +110,7 @@ impl AppModel {
 }
 
 #[derive(PartialEq, Eq, Debug)]
-enum Screen {
+pub enum Screen {
     Loading,
     Play,
 }
@@ -125,18 +125,18 @@ enum Message {
     Selection,
     ToggleSearch(bool),
     SearchEvent(Event),
-    Stop,
+    StopPlayback,
 }
 
 #[derive(Debug, PartialEq, Eq)]
-enum FocusRegion {
+pub enum FocusRegion {
     MainArea,
     RadioInfo,
     Queue,
 }
 
 #[derive(PartialEq, Eq, Debug)]
-enum RunningState {
+pub enum RunningState {
     Running,
     Done,
 }
@@ -202,7 +202,7 @@ fn update(model: &mut AppModel, msg: Message) -> Option<Message> {
                     .expect("Error inserting new song to queue");
             }
         }
-        Message::Stop => stop(model),
+        Message::StopPlayback => stop(model),
         Message::Navigation(key) => {
             if let Some(new_focus) = handle_navigation(model, key) {
                 model.focus = new_focus;
@@ -366,7 +366,7 @@ fn handle_event(model: &AppModel) -> Result<Option<Message>, Box<dyn Error>> {
 fn handle_key(model: &AppModel, key: event::KeyEvent) -> Option<Message> {
     match key.code {
         KeyCode::Char('q') => Some(Message::Quit),
-        KeyCode::Char('s') => Some(Message::Stop),
+        KeyCode::Char('s') => Some(Message::StopPlayback),
         KeyCode::Char('/') => Some(Message::ToggleSearch(!model.search_toggled)),
         KeyCode::Up | KeyCode::Down | KeyCode::Left | KeyCode::Right => {
             Some(Message::Navigation(key.code))
