@@ -353,7 +353,8 @@ fn handle_event(model: &AppModel) -> Result<Option<Message>, Box<dyn Error>> {
         && let event::Event::Key(key) = event::read()?
         && key.kind == event::KeyEventKind::Press
     {
-        if KeyCode::Char('/') != key.code && KeyCode::Enter != key.code && model.search_toggled {
+        if let KeyCode::Char('/') | KeyCode::Enter | KeyCode::Esc = key.code {
+        } else if model.search_toggled {
             return Ok(Some(Message::SearchEvent(Event::Key(key))));
         }
 
@@ -371,6 +372,7 @@ fn handle_key(model: &AppModel, key: event::KeyEvent) -> Option<Message> {
         KeyCode::Up | KeyCode::Down | KeyCode::Left | KeyCode::Right => {
             Some(Message::Navigation(key.code))
         }
+        KeyCode::Esc => Some(Message::ToggleSearch(false)),
         KeyCode::Enter => {
             if model.search_toggled {
                 Some(Message::ToggleSearch(false))
