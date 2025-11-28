@@ -1,6 +1,7 @@
 use antenna::stations::StationList;
 use ratatui::{
     prelude::*,
+    text::ToSpan,
     widgets::{Block, Borders, List, Paragraph},
 };
 
@@ -92,8 +93,14 @@ impl Widget for PlayScreen<'_> {
         radio_info_block.render(radio_info_area, buf);
 
         // Queue
-        let queue_list = List::new(self.model.queue.iter().map(|s| s.title.clone()))
-            .highlight_style(Style::new().black().on_white());
+        let queue_list = List::new(self.model.queue.iter().enumerate().map(|s| {
+            if s.0 == 0 {
+                s.1.title.clone().dim().italic()
+            } else {
+                s.1.title.clone().not_dim()
+            }
+        }))
+        .highlight_style(Style::new().black().on_white());
 
         StatefulWidget::render(
             queue_list,
