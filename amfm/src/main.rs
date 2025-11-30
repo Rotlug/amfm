@@ -276,7 +276,7 @@ fn update(model: &mut AppModel, msg: Message) -> Option<Message> {
 
 /// Play a station
 fn play_station(model: &mut AppModel, station: &Station) {
-    model.playback.stop();
+    stop(model);
     model.playback.set_source_uri(&station.url);
     model.current_station = Some(station.clone());
     model.playback.play();
