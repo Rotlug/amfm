@@ -279,6 +279,7 @@ fn play_station(model: &mut AppModel, station: &Station) {
     stop(model);
     model.playback.set_source_uri(&station.url);
     model.current_station = Some(station.clone());
+    model.current_title = String::new();
     model.playback.play();
 }
 
