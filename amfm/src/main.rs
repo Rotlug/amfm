@@ -178,7 +178,8 @@ fn update(model: &mut AppModel, msg: Message) -> Option<Message> {
         Message::Quit => {
             model.running_state = {
                 model.playback.stop_recording(true);
-                model.queue.discard();
+                fs::remove_dir_all(model.config.temp_song_location.clone())
+                    .expect("Could not delete temporary directory");
                 RunningState::Done
             }
         }
@@ -268,6 +269,12 @@ fn update(model: &mut AppModel, msg: Message) -> Option<Message> {
         Message::ToggleSearch(toggled) => {
             model.search_toggled = toggled;
             model.focus = FocusRegion::MainArea;
+
+            if !toggled {
+                model.table_virtual_offset = 0;
+                model.last_selected_station = 0;
+                model.stations_table_state.select(Some(0));
+            }
         }
         Message::SearchEvent(event) => {
             model.table_virtual_offset = 0;

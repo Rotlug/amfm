@@ -52,16 +52,6 @@ impl SongQueue {
         Ok(())
     }
 
-    /// Used to delete all temporary songs at the end of the program
-    /// NOTE: Does not clear the queue!
-    pub fn discard(&self) {
-        for song in &self.queue {
-            if song.path.exists() {
-                let _ = fs::remove_file(&song.path);
-            }
-        }
-    }
-
     pub fn iter(&self) -> impl Iterator<Item = &Song> {
         self.queue.iter()
     }
