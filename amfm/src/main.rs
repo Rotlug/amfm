@@ -264,7 +264,11 @@ fn update(model: &mut AppModel, msg: Message) -> Option<Message> {
         }
         Message::ToggleSearch(toggled) => {
             model.search_toggled = toggled;
-            model.focus = FocusRegion::MainArea
+            model.focus = FocusRegion::MainArea;
+
+            if model.stations_table_state.selected().is_none() {
+                model.stations_table_state.select(Some(0));
+            }
         }
         Message::SearchEvent(event) => {
             model.stations_search.handle_event(&event);
