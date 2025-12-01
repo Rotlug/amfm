@@ -10,13 +10,13 @@
 }:
 rustPlatform.buildRustPackage rec {
   pname = "amfm";
-  version = "cb13643bae05debbb3747fd1d7c0be7f799f6315";
+  version = "cd5674c8727f72d3c16701546cd05b854cb0092c";
 
   src = fetchFromGitHub {
     owner = "Rotlug";
     repo = "amfm";
     rev = version;
-    sha256 = "sha256-ngdWb7jH7I4lHVMFbgjY3l8ZTRgPnDDphQRJY8M7l80=";
+    sha256 = "sha256-ghHSweuyjZq8dfoNJUJE+S5THO236CzKXPF5MumjGps=";
   };
 
   cargoBuildFlags = ["-p" "amfm"];
