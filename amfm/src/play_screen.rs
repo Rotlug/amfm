@@ -5,7 +5,10 @@ use ratatui::{
 };
 
 use crate::{
-    AppModel, FocusRegion, radio_info::RadioInfo, stations_table::StationsTable,
+    AppModel, FocusRegion,
+    radio_info::RadioInfo,
+    shortcuts_display::{self, ShortcutsDisplay},
+    stations_table::StationsTable,
     utils::center_vertical,
 };
 
@@ -26,11 +29,14 @@ impl Widget for PlayScreen<'_> {
             .take(self.model.table_size.into());
 
         // Areas
+        let [full_area, shortcuts_area] =
+            Layout::vertical([Constraint::Fill(1), Constraint::Length(1)]).areas(area);
+
         let [main_area, sidebar_area] = Layout::new(
             Direction::Horizontal,
             [Constraint::Percentage(70), Constraint::Percentage(30)],
         )
-        .areas(area);
+        .areas(full_area);
 
         let [main_area, search_area] = Layout::new(
             Direction::Vertical,
@@ -114,5 +120,9 @@ impl Widget for PlayScreen<'_> {
         // Search bar
         let text_input = Paragraph::new(self.model.stations_search.value()).cyan();
         text_input.render(search_area, buf);
+
+        // Shortcuts
+        let shortcuts = ShortcutsDisplay {};
+        shortcuts.render(shortcuts_area, buf);
     }
 }

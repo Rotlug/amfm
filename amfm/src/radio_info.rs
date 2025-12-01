@@ -62,15 +62,12 @@ impl Widget for RadioInfo<'_> {
             current_song_area,
             recording_area,
             last_update_area,
-        ] = Layout::new(
-            Direction::Vertical,
-            [
-                Constraint::Length(name.line_count(area.width) as u16),
-                Constraint::Length(current_song.line_count(area.width) as u16),
-                Constraint::Length(1),
-                Constraint::Length(last_update.line_count(area.width) as u16),
-            ],
-        )
+        ] = Layout::vertical([
+            Constraint::Length(name.line_count(area.width) as u16),
+            Constraint::Length(current_song.line_count(area.width) as u16),
+            Constraint::Length(1),
+            Constraint::Length(last_update.line_count(area.width) as u16),
+        ])
         .areas(area);
 
         name.render(name_area, buf);

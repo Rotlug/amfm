@@ -27,6 +27,7 @@ mod config;
 mod loading_screen;
 mod play_screen;
 mod radio_info;
+mod shortcuts_display;
 mod song_queue;
 mod stations_table;
 mod utils;
@@ -429,7 +430,7 @@ fn view(model: &mut AppModel, frame: &mut ratatui::Frame) {
             if model.search_toggled {
                 frame.set_cursor_position((
                     model.stations_search.cursor() as u16,
-                    frame.area().height - 1,
+                    frame.area().height - 2,
                 ));
             }
         }
