@@ -312,14 +312,16 @@ fn handle_navigation(model: &mut AppModel, key: KeyCode) -> Option<FocusRegion> 
                 }
             },
             FocusRegion::MainArea => {
+                let index = model.stations_table_state.selected()?;
+                if index == 0 && model.table_virtual_offset > 0 {
+                    model.table_virtual_offset -= 1;
+                }
+
                 model.stations_table_state.select_previous();
                 if let Some(index) = model.stations_table_state.selected() {
                     model.last_selected_station = index;
-
-                    if index == 0 && model.table_virtual_offset > 0 {
-                        model.table_virtual_offset -= 1;
-                    }
                 }
+
                 None
             }
             _ => None,
