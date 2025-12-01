@@ -40,6 +40,7 @@ pub struct AppModel {
 
     pub stations: Vec<Station>,
     pub stations_table_state: TableState,
+    pub table_virtual_offset: usize,
     pub table_size: u16,
 
     pub stations_search: Input,
@@ -109,6 +110,7 @@ impl AppModel {
             search_toggled: false,
             last_update: PlaybackUpdate::Loading,
             table_size: 0,
+            table_virtual_offset: 0,
         }
     }
 }
@@ -250,6 +252,7 @@ fn update(model: &mut AppModel, msg: Message) -> Option<Message> {
                             model
                                 .stations
                                 .search(model.stations_search.value())
+                                .skip(model.table_virtual_offset)
                                 .nth(index)
                                 .cloned()
                         };
@@ -265,12 +268,9 @@ fn update(model: &mut AppModel, msg: Message) -> Option<Message> {
         Message::ToggleSearch(toggled) => {
             model.search_toggled = toggled;
             model.focus = FocusRegion::MainArea;
-
-            if model.stations_table_state.selected().is_none() {
-                model.stations_table_state.select(Some(0));
-            }
         }
         Message::SearchEvent(event) => {
+            model.table_virtual_offset = 0;
             model.stations_search.handle_event(&event);
         }
     }
@@ -315,6 +315,10 @@ fn handle_navigation(model: &mut AppModel, key: KeyCode) -> Option<FocusRegion> 
                 model.stations_table_state.select_previous();
                 if let Some(index) = model.stations_table_state.selected() {
                     model.last_selected_station = index;
+
+                    if index == 0 && model.table_virtual_offset > 0 {
+                        model.table_virtual_offset -= 1;
+                    }
                 }
                 None
             }
@@ -328,8 +332,8 @@ fn handle_navigation(model: &mut AppModel, key: KeyCode) -> Option<FocusRegion> 
             }
             FocusRegion::MainArea => {
                 let next_sel = model.stations_table_state.selected()? + 1;
-                if next_sel - model.stations_table_state.offset() >= model.table_size as usize {
-                    *model.stations_table_state.offset_mut() += 1;
+                if next_sel >= model.table_size as usize {
+                    model.table_virtual_offset += 1;
                 }
 
                 model.stations_table_state.select_next();

@@ -22,7 +22,8 @@ impl Widget for PlayScreen<'_> {
             .model
             .stations
             .search(self.model.stations_search.value())
-            .take(self.model.table_size as usize + self.model.stations_table_state.offset());
+            .skip(self.model.table_virtual_offset)
+            .take(self.model.table_size.into());
 
         // Areas
         let [main_area, sidebar_area] = Layout::new(
