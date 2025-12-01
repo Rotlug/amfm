@@ -11,7 +11,6 @@ use crate::{
 
 pub struct PlayScreen<'a> {
     pub model: &'a mut AppModel,
-    pub table_size: usize,
 }
 
 impl Widget for PlayScreen<'_> {
@@ -23,7 +22,7 @@ impl Widget for PlayScreen<'_> {
             .model
             .stations
             .search(self.model.stations_search.value())
-            .take(self.table_size);
+            .take(self.model.table_size as usize + self.model.stations_table_state.offset());
 
         // Areas
         let [main_area, sidebar_area] = Layout::new(
@@ -63,6 +62,7 @@ impl Widget for PlayScreen<'_> {
         let table = StationsTable {
             stations: Box::new(stations_iter),
             state: &mut self.model.stations_table_state,
+            focused: self.model.focus == FocusRegion::MainArea,
         };
 
         table.render(main.inner(main_area), buf);

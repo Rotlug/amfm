@@ -8,6 +8,7 @@ use ratatui::{
 pub struct StationsTable<'a> {
     pub stations: Box<dyn Iterator<Item = &'a Station> + 'a>,
     pub state: &'a mut TableState,
+    pub focused: bool,
 }
 
 impl Widget for StationsTable<'_> {
@@ -22,7 +23,11 @@ impl Widget for StationsTable<'_> {
         let table = Table::new(rows, widths)
             .column_spacing(1)
             .header(header())
-            .row_highlight_style(Style::new().white().on_green().bold());
+            .row_highlight_style(if self.focused {
+                Style::new().white().on_green().bold()
+            } else {
+                Style::new()
+            });
 
         StatefulWidget::render(table, area, buf, self.state);
     }

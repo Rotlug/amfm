@@ -40,8 +40,11 @@ pub struct AppModel {
 
     pub stations: Vec<Station>,
     pub stations_table_state: TableState,
+    pub table_size: u16,
+
     pub stations_search: Input,
     pub search_toggled: bool,
+
     pub last_selected_station: usize,
 
     pub playback: PlaybackManager,
@@ -105,6 +108,7 @@ impl AppModel {
             config: Config::parse(),
             search_toggled: false,
             last_update: PlaybackUpdate::Loading,
+            table_size: 0,
         }
     }
 }
@@ -216,11 +220,7 @@ fn update(model: &mut AppModel, msg: Message) -> Option<Message> {
 
                 model
                     .stations_table_state
-                    .select(if model.focus == FocusRegion::MainArea {
-                        Some(model.last_selected_station)
-                    } else {
-                        None
-                    });
+                    .select(Some(model.last_selected_station));
             }
         }
         Message::Selection => {
@@ -323,6 +323,11 @@ fn handle_navigation(model: &mut AppModel, key: KeyCode) -> Option<FocusRegion> 
                 None
             }
             FocusRegion::MainArea => {
+                let next_sel = model.stations_table_state.selected()? + 1;
+                if next_sel - model.stations_table_state.offset() >= model.table_size as usize {
+                    *model.stations_table_state.offset_mut() += 1;
+                }
+
                 model.stations_table_state.select_next();
                 if let Some(index) = model.stations_table_state.selected() {
                     model.last_selected_station = index;
@@ -396,13 +401,13 @@ fn view(model: &mut AppModel, frame: &mut ratatui::Frame) {
             );
         }
         Screen::Play => {
-            let table_size = if frame.area().height < 4 {
+            model.table_size = if frame.area().height < 4 {
                 1
             } else {
-                (frame.area().height - 4).into()
+                frame.area().height - 4
             };
 
-            frame.render_widget(play_screen::PlayScreen { model, table_size }, frame.area());
+            frame.render_widget(play_screen::PlayScreen { model }, frame.area());
 
             if model.search_toggled {
                 frame.set_cursor_position((
