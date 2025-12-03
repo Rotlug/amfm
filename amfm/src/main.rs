@@ -11,6 +11,7 @@ use antenna::{
     stations::{Station, StationList},
 };
 
+use arboard::Clipboard;
 use clap::Parser;
 use ratatui::{
     crossterm::event::{self, Event, KeyCode},
@@ -63,6 +64,8 @@ pub struct AppModel {
     pub config: Config,
 
     pub last_update: PlaybackUpdate,
+
+    pub clipboard: Option<Clipboard>,
 }
 
 impl AppModel {
@@ -112,6 +115,7 @@ impl AppModel {
             last_update: PlaybackUpdate::Loading,
             table_size: 0,
             table_virtual_offset: 0,
+            clipboard: Clipboard::new().ok(),
         }
     }
 }
@@ -132,6 +136,7 @@ enum Message {
     Selection,
     ToggleSearch(bool),
     SearchEvent(Event),
+    CopyStationURL,
     StopPlayback,
 }
 
@@ -281,6 +286,13 @@ fn update(model: &mut AppModel, msg: Message) -> Option<Message> {
             model.table_virtual_offset = 0;
             model.stations_search.handle_event(&event);
         }
+        Message::CopyStationURL => {
+            if let Some(cb) = &mut model.clipboard
+                && let Some(station) = &model.current_station
+            {
+                let _ = cb.set_text(station.url.to_owned());
+            }
+        }
     }
 
     None
@@ -391,6 +403,7 @@ fn handle_event(model: &AppModel) -> Result<Option<Message>, Box<dyn Error>> {
 fn handle_key(model: &AppModel, key: event::KeyEvent) -> Option<Message> {
     match key.code {
         KeyCode::Char('q') => Some(Message::Quit),
+        KeyCode::Char('y') => Some(Message::CopyStationURL),
         KeyCode::Char('s') => Some(Message::StopPlayback),
         KeyCode::Char('/') => Some(Message::ToggleSearch(!model.search_toggled)),
         KeyCode::Up | KeyCode::Down | KeyCode::Left | KeyCode::Right => {

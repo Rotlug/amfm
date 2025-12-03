@@ -15,6 +15,7 @@ impl Widget for ShortcutsDisplay {
             shortcut("/", "Search"),
             shortcut("s", "Stop playback"),
             shortcut("q", "Quit"),
+            shortcut("y", "Copy URL"),
         ];
 
         let constraints = shortcuts.iter().map(|s| Constraint::Length(s.0 as u16));
