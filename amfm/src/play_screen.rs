@@ -1,7 +1,7 @@
 use antenna::stations::StationList;
 use ratatui::{
     prelude::*,
-    widgets::{Block, Borders, List, Paragraph},
+    widgets::{Block, Borders, List, Paragraph, Wrap},
 };
 
 use crate::{
@@ -88,7 +88,8 @@ impl Widget for PlayScreen<'_> {
             let nothing_playing = Paragraph::new("Nothing is playing")
                 .alignment(Alignment::Center)
                 .dim()
-                .italic();
+                .italic()
+                .wrap(Wrap { trim: true });
 
             let height = nothing_playing.line_count(radio_info_area_inner.width) as u16;
 
