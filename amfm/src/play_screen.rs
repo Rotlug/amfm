@@ -72,6 +72,8 @@ impl Widget for PlayScreen<'_> {
         table.render(main.inner(main_area), buf);
         main.render(main_area, buf);
 
+        let radio_info_area_inner = radio_info_block.inner(radio_info_area);
+
         // Radio info
         if let Some(station) = &self.model.current_station {
             let radio_info = RadioInfo {
@@ -81,16 +83,19 @@ impl Widget for PlayScreen<'_> {
                 last_update: &self.model.last_update,
             };
 
-            radio_info.render(radio_info_block.inner(radio_info_area), buf);
+            radio_info.render(radio_info_area_inner, buf);
         } else {
             let nothing_playing = Paragraph::new("Nothing is playing")
                 .alignment(Alignment::Center)
                 .dim()
                 .italic();
 
-            let height = nothing_playing.line_count(radio_info_area.width) as u16;
+            let height = nothing_playing.line_count(radio_info_area_inner.width) as u16;
 
-            nothing_playing.render(center_vertical(radio_info_area, height), buf);
+            nothing_playing.render(
+                center_vertical(radio_info_block.inner(radio_info_area_inner), height),
+                buf,
+            );
         }
 
         radio_info_block.render(radio_info_area, buf);
