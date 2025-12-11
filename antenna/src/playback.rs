@@ -410,7 +410,7 @@ impl PlaybackManager {
         // before it potentially interfered with the other part of the pipeline
         recorderbin
             .set_state(gstreamer::State::Playing)
-            .expect("Failed to start recording");
+            .unwrap_or_else(|_| panic!("Failed to record song {}", path.to_str().unwrap_or("---")));
 
         // Add new recorderbin to the pipeline
         self.pipeline
