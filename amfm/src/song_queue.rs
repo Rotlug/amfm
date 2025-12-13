@@ -9,7 +9,7 @@ pub struct Song {
 impl Song {
     pub fn new(title: String, dir: PathBuf) -> Self {
         Self {
-            path: dir.join(format!("{title}.ogg")),
+            path: dir.join(format!("{}.ogg", sanitize_filename(&title))),
             title,
         }
     }
@@ -21,6 +21,16 @@ impl Song {
             title: title.to_string(),
         }
     }
+}
+
+pub fn sanitize_filename(title: &str) -> String {
+    title
+        .chars()
+        .map(|c| match c {
+            '/' | '\\' | ':' | '*' | '?' | '"' | '<' | '>' | '|' => '_',
+            _ => c,
+        })
+        .collect()
 }
 
 /// Removing old files
