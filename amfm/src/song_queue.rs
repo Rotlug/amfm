@@ -62,6 +62,11 @@ impl SongQueue {
         Ok(())
     }
 
+    /// Checks if a song with a given title already exists in the queue
+    pub fn song_exists(&self, title: &str) -> bool {
+        self.iter().any(|song| song.title == title)
+    }
+
     pub fn iter(&self) -> impl Iterator<Item = &Song> {
         self.queue.iter()
     }

@@ -205,7 +205,7 @@ fn update(model: &mut AppModel, msg: Message) -> Option<Message> {
 
                 let song = Song::new(name, model.config.temp_song_location.clone());
 
-                if model.config.record {
+                if model.config.record && !model.queue.song_exists(&song.title) {
                     model.playback.start_recording(song.path.clone());
                 }
 
