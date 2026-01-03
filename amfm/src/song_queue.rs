@@ -1,16 +1,18 @@
 use std::{collections::VecDeque, fs, io, path::PathBuf};
 
+use antenna::playback::TrackTags;
+
 #[derive(Debug, PartialEq)]
 pub struct Song {
-    pub title: String,
+    pub tags: TrackTags,
     pub path: PathBuf,
 }
 
 impl Song {
-    pub fn new(title: String, dir: PathBuf) -> Self {
+    pub fn new(tags: TrackTags, dir: PathBuf) -> Self {
         Self {
-            path: dir.join(format!("{}.ogg", sanitize_filename(&title))),
-            title,
+            path: dir.join(format!("{}.ogg", sanitize_filename(&tags.title))),
+            tags,
         }
     }
 
@@ -18,7 +20,10 @@ impl Song {
     fn mock(title: &str) -> Self {
         Self {
             path: PathBuf::from(title),
-            title: title.to_string(),
+            tags: TrackTags {
+                title: title.to_string(),
+                artist: None,
+            },
         }
     }
 }
@@ -64,7 +69,7 @@ impl SongQueue {
 
     /// Checks if a song with a given title already exists in the queue
     pub fn song_exists(&self, title: &str) -> bool {
-        self.iter().any(|song| song.title == title)
+        self.iter().any(|song| song.tags.title == title)
     }
 
     pub fn iter(&self) -> impl Iterator<Item = &Song> {
@@ -75,6 +80,11 @@ impl SongQueue {
     /// index
     pub fn get(&self, index: usize) -> Option<&Song> {
         self.queue.get(index)
+    }
+
+    // Get a reference to the last element in the queue (the front)
+    pub fn last(&self) -> Option<&Song> {
+        self.queue.front()
     }
 
     /// Remove some song from the queue by index

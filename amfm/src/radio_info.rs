@@ -1,7 +1,8 @@
-use antenna::playback::PlaybackUpdate;
+use antenna::playback::{PlaybackUpdate, TrackTags};
 use ratatui::prelude::*;
 use ratatui::widgets::{Paragraph, Widget, Wrap};
 
+use crate::song_queue::Song;
 use crate::utils::center_horizontal;
 
 const RECORDING_TEXT: &str = "REC";
@@ -9,7 +10,7 @@ const NOT_RECORDING_TEXT: &str = "IDLE";
 
 pub struct RadioInfo<'a> {
     pub name: &'a str,
-    pub current_song: &'a str,
+    pub current_song: Option<&'a Song>,
     pub is_recording: bool,
     pub last_update: &'a PlaybackUpdate,
 }
@@ -26,7 +27,24 @@ impl Widget for RadioInfo<'_> {
             .wrap(Wrap { trim: true });
 
         // Current song title
-        let current_song = Paragraph::new(self.current_song)
+        let displayed_name = if let Some(Song {
+            tags:
+                TrackTags {
+                    artist: Some(artist_name),
+                    title: track_title,
+                    ..
+                },
+            ..
+        }) = self.current_song
+        {
+            &format!("{track_title} - by {artist_name}")
+        } else if let Some(song) = self.current_song {
+            song.tags.title.as_str()
+        } else {
+            ""
+        };
+
+        let current_song = Paragraph::new(displayed_name)
             .alignment(Alignment::Center)
             .italic()
             .dim()
@@ -50,7 +68,7 @@ impl Widget for RadioInfo<'_> {
         let last_update = match self.last_update {
             PlaybackUpdate::Loading => Paragraph::new("Loading...").dim().italic().centered(),
             PlaybackUpdate::Stopped => Paragraph::new("Stopped.").dim().italic().centered(),
-            PlaybackUpdate::Error(msg) => Paragraph::new(msg.clone())
+            PlaybackUpdate::Error(msg) => Paragraph::new(msg.as_str())
                 .red()
                 .wrap(Wrap { trim: true })
                 .centered(),

@@ -53,7 +53,6 @@ pub struct AppModel {
     pub playback: PlaybackManager,
     pub playback_receiver: Receiver<PlaybackUpdate>,
 
-    pub current_title: String,
     pub current_station: Option<Station>,
 
     pub queue: SongQueue,
@@ -102,7 +101,6 @@ impl AppModel {
             loading_result,
             playback: mgr,
             playback_receiver: rx,
-            current_title: String::new(),
             current_station: None,
             stations_search: "".into(),
             last_selected_station: 0,
@@ -184,7 +182,7 @@ fn update(model: &mut AppModel, msg: Message) -> Option<Message> {
         Message::Quit => {
             model.running_state = {
                 model.playback.stop_recording(true);
-                fs::remove_dir_all(model.config.temp_song_location.clone())
+                fs::remove_dir_all(&model.config.temp_song_location)
                     .expect("Could not delete temporary directory");
                 RunningState::Done
             }
@@ -198,15 +196,13 @@ fn update(model: &mut AppModel, msg: Message) -> Option<Message> {
         }
         Message::PlaybackMsg(msg) => {
             model.last_update = msg.clone();
-            if let PlaybackUpdate::NewSong(name) = msg {
+            if let PlaybackUpdate::NewSong(tags) = msg {
                 model.playback.stop_recording(true);
 
-                model.current_title = name.clone();
+                let song = Song::new(tags, model.config.temp_song_location.clone());
 
-                let song = Song::new(name, model.config.temp_song_location.clone());
-
-                if model.config.record && !model.queue.song_exists(&song.title) {
-                    model.playback.start_recording(song.path.clone());
+                if model.config.record && !model.queue.song_exists(&song.tags.title) {
+                    model.playback.start_recording(&song.path);
                 }
 
                 model
@@ -241,11 +237,11 @@ fn update(model: &mut AppModel, msg: Message) -> Option<Message> {
                     {
                         // Save song permanently
                         fs::rename(
-                            song.path.clone(),
+                            &song.path,
                             model
                                 .config
                                 .saved_song_location
-                                .join(format!("{}.ogg", song.title)),
+                                .join(format!("{}.ogg", song.tags.title)),
                         )
                         .expect("Could not save song permanently!");
 
@@ -303,7 +299,6 @@ fn play_station(model: &mut AppModel, station: &Station) {
     stop(model);
     model.playback.set_source_uri(&station.url);
     model.current_station = Some(station.clone());
-    model.current_title = String::new();
     model.playback.play();
 }
 

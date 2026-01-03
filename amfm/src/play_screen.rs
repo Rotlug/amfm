@@ -78,7 +78,7 @@ impl Widget for PlayScreen<'_> {
         if let Some(station) = &self.model.current_station {
             let radio_info = RadioInfo {
                 name: &station.name,
-                current_song: &self.model.current_title,
+                current_song: self.model.queue.last(),
                 is_recording: self.model.playback.is_recording(),
                 last_update: &self.model.last_update,
             };
@@ -102,11 +102,13 @@ impl Widget for PlayScreen<'_> {
         radio_info_block.render(radio_info_area, buf);
 
         // Queue
-        let queue_list = List::new(self.model.queue.iter().enumerate().map(|s| {
-            if s.0 == 0 {
-                s.1.title.clone().dim().italic()
+        let queue_list = List::new(self.model.queue.iter().enumerate().map(|(i, item)| {
+            let title: &str = &item.tags.title;
+
+            if i == 0 {
+                Span::styled(title, Style::default().dim().italic())
             } else {
-                s.1.title.clone().not_dim()
+                Span::raw(title)
             }
         }))
         .highlight_style(Style::new().black().on_white());

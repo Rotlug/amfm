@@ -1,7 +1,7 @@
 // The vast majority of this code is from "Shortwave"
 // --> https://gitlab.gnome.org/World/Shortwave/
 
-use std::path::PathBuf;
+use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::Sender;
 use std::sync::{Arc, Mutex};
@@ -16,6 +16,12 @@ use gstreamer::{
     glib::object::Cast,
     prelude::{ClockExt, ElementExt, GstBinExt, PadExt},
 };
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct TrackTags {
+    pub title: String,
+    pub artist: Option<String>,
+}
 
 /// BufferingState ensures that the player acutally pauses when buffered
 /// And can return back to playing normally when buffering
@@ -41,7 +47,7 @@ impl BufferingState {
 pub enum PlaybackUpdate {
     Playing,
     Stopped,
-    NewSong(String),
+    NewSong(TrackTags),
     Error(String),
     Loading,
 }
@@ -171,12 +177,21 @@ impl PlaybackManager {
             MessageView::Tag(tag) => {
                 if let Some(t) = tag.tags().get::<gstreamer::tags::Title>() {
                     let new_title = t.get().to_string();
+                    let mut track_tags = TrackTags {
+                        title: new_title,
+                        artist: None,
+                    };
 
                     // only send message if title really changed.
                     let mut current_title_locked = current_title.lock().unwrap();
-                    if *current_title_locked != new_title {
-                        current_title_locked.clone_from(&new_title);
-                        sender.send(PlaybackUpdate::NewSong(new_title)).unwrap();
+
+                    if let Some(t) = tag.tags().get::<gstreamer::tags::Artist>() {
+                        track_tags.artist = Some(t.get().to_string());
+                    }
+
+                    if *current_title_locked != track_tags.title {
+                        current_title_locked.clone_from(&track_tags.title);
+                        sender.send(PlaybackUpdate::NewSong(track_tags)).unwrap();
                     }
                 }
             }
@@ -380,7 +395,7 @@ impl PlaybackManager {
     }
 
     /// Start recording the stream to some path
-    pub fn start_recording(&mut self, path: PathBuf) {
+    pub fn start_recording(&mut self, path: &Path) {
         if self.is_recording() {
             self.stop_recording(false);
         }
