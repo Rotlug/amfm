@@ -158,7 +158,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let config = Config::parse();
 
     if let Some(station) = config.station() {
-        play_station(&mut model, &station);
+        play_station(&mut model, station);
     }
 
     while model.running_state != RunningState::Done {
