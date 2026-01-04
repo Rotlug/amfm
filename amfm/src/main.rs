@@ -203,12 +203,12 @@ fn update(model: &mut AppModel, msg: Message) -> Option<Message> {
 
                 if model.config.record && !model.queue.song_exists(&song.tags.title) {
                     model.playback.start_recording(&song.path);
-                }
 
-                model
-                    .queue
-                    .insert(song)
-                    .expect("Error inserting new song to queue");
+                    model
+                        .queue
+                        .insert(song)
+                        .expect("Error inserting new song to queue");
+                }
             }
         }
         Message::StopPlayback => stop(model),
@@ -257,11 +257,10 @@ fn update(model: &mut AppModel, msg: Message) -> Option<Message> {
                                 .search(model.stations_search.value())
                                 .skip(model.table_virtual_offset)
                                 .nth(index)
-                                .cloned()
                         };
 
                         if let Some(station) = station {
-                            play_station(model, &station);
+                            play_station(model, station.clone());
                         }
                     }
                 }
@@ -286,7 +285,7 @@ fn update(model: &mut AppModel, msg: Message) -> Option<Message> {
             if let Some(cb) = &mut model.clipboard
                 && let Some(station) = &model.current_station
             {
-                let _ = cb.set_text(station.url.to_owned());
+                let _ = cb.set_text(&station.url);
             }
         }
     }
@@ -295,10 +294,10 @@ fn update(model: &mut AppModel, msg: Message) -> Option<Message> {
 }
 
 /// Play a station
-fn play_station(model: &mut AppModel, station: &Station) {
+fn play_station(model: &mut AppModel, station: Station) {
     stop(model);
     model.playback.set_source_uri(&station.url);
-    model.current_station = Some(station.clone());
+    model.current_station = Some(station);
     model.playback.play();
 }
 
