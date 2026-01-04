@@ -10,18 +10,18 @@
 }:
 rustPlatform.buildRustPackage rec {
   pname = "amfm";
-  version = "cd5674c8727f72d3c16701546cd05b854cb0092c";
+  version = "b5a051af0126d7d218c49afe59377bbdeb89f636";
 
   src = fetchFromGitHub {
     owner = "Rotlug";
     repo = "amfm";
     rev = version;
-    sha256 = "sha256-ghHSweuyjZq8dfoNJUJE+S5THO236CzKXPF5MumjGps=";
+    sha256 = "sha256-SmQZyMJfdRmWlGnIXw99geMahMrzxTXlaLdtqYkxiI4=";
   };
 
   cargoBuildFlags = ["-p" "amfm"];
 
-  cargoHash = "sha256-WyCIOhi7axe6bbDPfSs0nyna6cDxLmbFInkNMGI2iaw=";
+  cargoHash = "sha256-h/6OinQtq9auHG1eDR2RHvxVLwr0GP5ZzC1/xu8958I=";
 
   nativeBuildInputs = [
     pkg-config
