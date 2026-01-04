@@ -103,7 +103,7 @@ impl Widget for PlayScreen<'_> {
 
         // Queue
         let queue_list = List::new(self.model.queue.iter().enumerate().map(|(i, item)| {
-            let title: &str = &item.tags.title;
+            let title = item.to_string();
 
             if i == 0 {
                 Span::styled(title, Style::default().dim().italic())

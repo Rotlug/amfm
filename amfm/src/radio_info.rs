@@ -1,4 +1,4 @@
-use antenna::playback::{PlaybackUpdate, TrackTags};
+use antenna::playback::PlaybackUpdate;
 use ratatui::prelude::*;
 use ratatui::widgets::{Paragraph, Widget, Wrap};
 
@@ -27,19 +27,8 @@ impl Widget for RadioInfo<'_> {
             .wrap(Wrap { trim: true });
 
         // Current song title
-        let displayed_name = if let Some(Song {
-            tags:
-                TrackTags {
-                    artist: Some(artist_name),
-                    title: track_title,
-                    ..
-                },
-            ..
-        }) = self.current_song
-        {
-            &format!("{track_title} - by {artist_name}")
-        } else if let Some(song) = self.current_song {
-            song.tags.title.as_str()
+        let displayed_name = if let Some(song) = self.current_song {
+            &song.to_string()
         } else {
             ""
         };

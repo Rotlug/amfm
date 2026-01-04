@@ -1,4 +1,4 @@
-use std::{collections::VecDeque, fs, io, path::PathBuf};
+use std::{collections::VecDeque, fmt::Display, fs, io, path::PathBuf};
 
 use antenna::playback::TrackTags;
 
@@ -10,10 +10,14 @@ pub struct Song {
 
 impl Song {
     pub fn new(tags: TrackTags, dir: PathBuf) -> Self {
-        Self {
-            path: dir.join(format!("{}.ogg", sanitize_filename(&tags.title))),
+        let mut song = Self {
             tags,
-        }
+            path: PathBuf::new(),
+        };
+
+        song.path = dir.join(format!("{}.ogg", sanitize_filename(&song.to_string())));
+
+        song
     }
 
     #[cfg(test)]
@@ -28,14 +32,14 @@ impl Song {
     }
 }
 
-pub fn sanitize_filename(title: &str) -> String {
-    title
-        .chars()
-        .map(|c| match c {
-            '/' | '\\' | ':' | '*' | '?' | '"' | '<' | '>' | '|' => '_',
-            _ => c,
-        })
-        .collect()
+impl Display for Song {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if let Some(artist) = &self.tags.artist {
+            write!(f, "{artist} - {}", self.tags.title)
+        } else {
+            write!(f, "{}", self.tags.title)
+        }
+    }
 }
 
 /// Removing old files
@@ -92,6 +96,16 @@ impl SongQueue {
     pub fn remove(&mut self, index: usize) {
         let _ = self.queue.remove(index);
     }
+}
+
+pub fn sanitize_filename(title: &str) -> String {
+    title
+        .chars()
+        .map(|c| match c {
+            '/' | '\\' | ':' | '*' | '?' | '"' | '<' | '>' | '|' => '_',
+            _ => c,
+        })
+        .collect()
 }
 
 #[cfg(test)]
