@@ -238,10 +238,11 @@ fn update(model: &mut AppModel, msg: Message) -> Option<Message> {
                         // Save song permanently
                         fs::rename(
                             &song.path,
-                            model
-                                .config
-                                .saved_song_location
-                                .join(format!("{}.ogg", song.tags.title)),
+                            model.config.saved_song_location.join(
+                                song.path
+                                    .file_name()
+                                    .expect("Song should have valid filename"),
+                            ),
                         )
                         .expect("Could not save song permanently!");
 
