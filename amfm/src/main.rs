@@ -53,7 +53,7 @@ pub struct AppModel {
     pub playback: PlaybackManager,
     pub playback_receiver: Receiver<PlaybackUpdate>,
 
-    pub current_station: Option<Station>,
+    pub current_station: Option<usize>,
 
     pub queue: SongQueue,
     pub queue_list_state: ListState,
@@ -158,7 +158,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     let config = Config::parse();
 
     if let Some(station) = config.station() {
-        play_station(&mut model, station);
+        model.stations.push(station);
+        let new_station_idx = model.stations.len() - 1;
+
+        play_station(&mut model, new_station_idx);
     }
 
     while model.running_state != RunningState::Done {
@@ -261,7 +264,7 @@ fn update(model: &mut AppModel, msg: Message) -> Option<Message> {
                         };
 
                         if let Some(station) = station {
-                            play_station(model, station.clone());
+                            play_station(model, station);
                         }
                     }
                 }
@@ -284,9 +287,9 @@ fn update(model: &mut AppModel, msg: Message) -> Option<Message> {
         }
         Message::CopyStationURL => {
             if let Some(cb) = &mut model.clipboard
-                && let Some(station) = &model.current_station
+                && let Some(station) = model.current_station
             {
-                let _ = cb.set_text(&station.url);
+                let _ = cb.set_text(&model.stations[station].url);
             }
         }
     }
@@ -295,10 +298,12 @@ fn update(model: &mut AppModel, msg: Message) -> Option<Message> {
 }
 
 /// Play a station
-fn play_station(model: &mut AppModel, station: Station) {
+fn play_station(model: &mut AppModel, station_idx: usize) {
     stop(model);
-    model.playback.set_source_uri(&station.url);
-    model.current_station = Some(station);
+    model
+        .playback
+        .set_source_uri(&model.stations[station_idx].url);
+    model.current_station = Some(station_idx);
     model.playback.play();
 }
 

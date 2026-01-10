@@ -22,6 +22,7 @@ impl Widget for PlayScreen<'_> {
             .model
             .stations
             .search(self.model.stations_search.value())
+            .map(|i| &self.model.stations[i])
             .skip(self.model.table_virtual_offset)
             .take(self.model.table_size.into());
 
@@ -75,9 +76,9 @@ impl Widget for PlayScreen<'_> {
         let radio_info_area_inner = radio_info_block.inner(radio_info_area);
 
         // Radio info
-        if let Some(station) = &self.model.current_station {
+        if let Some(station) = self.model.current_station {
             let radio_info = RadioInfo {
-                name: &station.name,
+                name: &self.model.stations[station].name,
                 current_song: self.model.queue.last(),
                 is_recording: self.model.playback.is_recording(),
                 last_update: &self.model.last_update,
