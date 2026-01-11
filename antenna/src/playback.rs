@@ -47,7 +47,7 @@ impl BufferingState {
 pub enum PlaybackUpdate {
     Playing,
     Stopped,
-    NewSong(TrackTags),
+    NewSong(Arc<TrackTags>),
     Error(String),
     Loading,
 }
@@ -191,7 +191,9 @@ impl PlaybackManager {
 
                     if *current_title_locked != track_tags.title {
                         current_title_locked.clone_from(&track_tags.title);
-                        sender.send(PlaybackUpdate::NewSong(track_tags)).unwrap();
+                        sender
+                            .send(PlaybackUpdate::NewSong(Arc::new(track_tags)))
+                            .unwrap();
                     }
                 }
             }

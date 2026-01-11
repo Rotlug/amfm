@@ -1,15 +1,15 @@
-use std::{collections::VecDeque, fmt::Display, fs, io, path::PathBuf};
+use std::{collections::VecDeque, fmt::Display, fs, io, path::PathBuf, sync::Arc};
 
 use antenna::playback::TrackTags;
 
 #[derive(Debug, PartialEq)]
 pub struct Song {
-    pub tags: TrackTags,
+    pub tags: Arc<TrackTags>,
     pub path: PathBuf,
 }
 
 impl Song {
-    pub fn new(tags: TrackTags, dir: PathBuf) -> Self {
+    pub fn new(tags: Arc<TrackTags>, dir: PathBuf) -> Self {
         let mut song = Self {
             tags,
             path: PathBuf::new(),
@@ -24,10 +24,10 @@ impl Song {
     fn mock(title: &str) -> Self {
         Self {
             path: PathBuf::from(title),
-            tags: TrackTags {
+            tags: Arc::new(TrackTags {
                 title: title.to_string(),
                 artist: None,
-            },
+            }),
         }
     }
 }

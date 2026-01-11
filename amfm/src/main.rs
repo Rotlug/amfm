@@ -1,7 +1,10 @@
 use std::{
     error::Error,
     fs,
-    sync::mpsc::{self, Receiver},
+    sync::{
+        Arc,
+        mpsc::{self, Receiver},
+    },
     time::Duration,
 };
 
@@ -202,7 +205,7 @@ fn update(model: &mut AppModel, msg: Message) -> Option<Message> {
             if let PlaybackUpdate::NewSong(tags) = &model.last_update {
                 model.playback.stop_recording(true);
 
-                let song = Song::new(tags.clone(), model.config.temp_song_location.clone());
+                let song = Song::new(Arc::clone(tags), model.config.temp_song_location.clone());
 
                 if model.config.record && !model.queue.song_exists(&song.tags.title) {
                     model.playback.start_recording(&song.path);
