@@ -198,11 +198,11 @@ fn update(model: &mut AppModel, msg: Message) -> Option<Message> {
             return Some(Message::ChangeScreen(Screen::Play));
         }
         Message::PlaybackMsg(msg) => {
-            model.last_update = msg.clone();
-            if let PlaybackUpdate::NewSong(tags) = msg {
+            model.last_update = msg;
+            if let PlaybackUpdate::NewSong(tags) = &model.last_update {
                 model.playback.stop_recording(true);
 
-                let song = Song::new(tags, model.config.temp_song_location.clone());
+                let song = Song::new(tags.clone(), model.config.temp_song_location.clone());
 
                 if model.config.record && !model.queue.song_exists(&song.tags.title) {
                     model.playback.start_recording(&song.path);
