@@ -5,8 +5,11 @@ use ratatui::{
 };
 
 use crate::{
-    AppModel, FocusRegion, radio_info::RadioInfo, shortcuts_display::ShortcutsDisplay,
-    stations_table::StationsTable, utils::center_vertical,
+    AppModel, FocusRegion,
+    utils::center_vertical,
+    widgets::{
+        radio_info::RadioInfo, shortcuts_display::ShortcutsDisplay, stations_table::StationsTable,
+    },
 };
 
 pub struct PlayScreen<'a> {

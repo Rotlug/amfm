@@ -24,17 +24,15 @@ use tui_input::{Input, backend::crossterm::EventHandler};
 
 use crate::{
     config::Config,
+    screens::{Screen, loading::LoadingScreen, play::PlayScreen},
     song_queue::{Song, SongQueue},
 };
 
 mod config;
-mod loading_screen;
-mod play_screen;
-mod radio_info;
-mod shortcuts_display;
+mod screens;
 mod song_queue;
-mod stations_table;
 mod utils;
+mod widgets;
 
 pub struct AppModel {
     pub running_state: RunningState,
@@ -119,12 +117,6 @@ impl AppModel {
             clipboard: Clipboard::new().ok(),
         }
     }
-}
-
-#[derive(PartialEq, Eq, Debug)]
-pub enum Screen {
-    Loading,
-    Play,
 }
 
 enum Message {
@@ -428,7 +420,7 @@ fn view(model: &mut AppModel, frame: &mut ratatui::Frame) {
     match model.screen {
         Screen::Loading => {
             frame.render_widget(
-                loading_screen::LoadingScreen {
+                LoadingScreen {
                     percentage: model.loading_percentage,
                 },
                 frame.area(),
@@ -441,7 +433,7 @@ fn view(model: &mut AppModel, frame: &mut ratatui::Frame) {
                 frame.area().height - 4
             };
 
-            frame.render_widget(play_screen::PlayScreen { model }, frame.area());
+            frame.render_widget(PlayScreen { model }, frame.area());
 
             if model.search_toggled {
                 frame.set_cursor_position((
