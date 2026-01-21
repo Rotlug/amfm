@@ -49,9 +49,9 @@ impl Config {
     pub fn station(&self) -> Option<Station> {
         if let Some(url) = &self.initial_station {
             return Some(Station {
-                id: url.to_string(),
-                url: url.to_string(),
-                name: url.to_string(),
+                id: url.clone(),
+                url: url.clone(),
+                name: url.clone(),
                 country: "Local".to_string(),
                 votes: 0,
             });

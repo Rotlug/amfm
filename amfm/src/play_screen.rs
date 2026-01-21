@@ -48,16 +48,16 @@ impl Widget for PlayScreen<'_> {
         // Blocks
         let mut main = Block::new().borders(Borders::all()).title_top("Stations");
         if self.model.focus != FocusRegion::MainArea {
-            main = main.border_style(Style::new().dim())
+            main = main.border_style(Style::new().dim());
         }
 
         let mut radio_info_block = Block::new().borders(Borders::all()).title_top("Info");
         if self.model.focus != FocusRegion::RadioInfo {
-            radio_info_block = radio_info_block.border_style(Style::new().dim())
+            radio_info_block = radio_info_block.border_style(Style::new().dim());
         }
         let mut queue_block = Block::new().borders(Borders::all()).title_top("Queue");
         if self.model.focus != FocusRegion::Queue {
-            queue_block = queue_block.border_style(Style::new().dim())
+            queue_block = queue_block.border_style(Style::new().dim());
         }
 
         let [radio_info_area, queue_area] =

@@ -29,6 +29,6 @@ impl Widget for ShortcutsDisplay {
 }
 
 fn shortcut<'a>(key: &str, action: &str) -> (usize, Paragraph<'a>) {
-    let text = format!("[{}] {}", key, action);
+    let text = format!("[{key}] {action}");
     (text.len(), Paragraph::new(text).light_magenta())
 }

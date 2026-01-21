@@ -48,9 +48,9 @@ impl Widget for RadioInfo<'_> {
 
         let mut recording = Paragraph::new(rec_text);
         if self.is_recording {
-            recording = recording.white().on_red()
+            recording = recording.white().on_red();
         } else {
-            recording = recording.black().on_white()
+            recording = recording.black().on_white();
         }
 
         // Last Update

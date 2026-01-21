@@ -1,4 +1,10 @@
-use std::{collections::VecDeque, fmt::Display, fs, io, path::PathBuf, sync::Arc};
+use std::{
+    collections::VecDeque,
+    fmt::Display,
+    fs, io,
+    path::{Path, PathBuf},
+    sync::Arc,
+};
 
 use antenna::playback::TrackTags;
 
@@ -9,13 +15,15 @@ pub struct Song {
 }
 
 impl Song {
-    pub fn new(tags: Arc<TrackTags>, dir: PathBuf) -> Self {
+    pub fn new<P: AsRef<Path>>(tags: Arc<TrackTags>, dir: P) -> Self {
         let mut song = Self {
             tags,
             path: PathBuf::new(),
         };
 
-        song.path = dir.join(format!("{}.ogg", sanitize_filename(&song.to_string())));
+        song.path = dir
+            .as_ref()
+            .join(format!("{}.ogg", sanitize_filename(&song.to_string())));
 
         song
     }
@@ -128,7 +136,7 @@ mod tests {
                 Song::mock("b"),
                 Song::mock("a")
             ]
-        )
+        );
     }
 
     #[test]

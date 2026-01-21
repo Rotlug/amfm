@@ -380,10 +380,10 @@ fn handle_event(model: &AppModel) -> Result<Option<Message>, Box<dyn Error>> {
 
         let rx = &cr.rx;
 
-        return match rx.recv() {
-            Ok(new_percentage) => Ok(Some(Message::LoadingPercentage(new_percentage))),
-            Err(_) => Ok(Some(Message::LoadCache)),
-        };
+        return rx.recv().map_or_else(
+            |_| Ok(Some(Message::LoadCache)),
+            |new_percentage| Ok(Some(Message::LoadingPercentage(new_percentage))),
+        );
     } else if let Ok(msg) = model.playback_receiver.try_recv() {
         return Ok(Some(Message::PlaybackMsg(msg)));
     }
@@ -403,7 +403,7 @@ fn handle_event(model: &AppModel) -> Result<Option<Message>, Box<dyn Error>> {
     Ok(None)
 }
 
-fn handle_key(model: &AppModel, key: event::KeyEvent) -> Option<Message> {
+const fn handle_key(model: &AppModel, key: event::KeyEvent) -> Option<Message> {
     match key.code {
         KeyCode::Char('q') => Some(Message::Quit),
         KeyCode::Char('y') => Some(Message::CopyStationURL),
