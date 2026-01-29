@@ -10,7 +10,7 @@ use crate::{
     utils::{self},
 };
 
-const STATIONS_URL: &str = "http://37.27.202.89/json/stations";
+const STATIONS_URL: &str = "http://de1.api.radio-browser.info/json/stations/topclick/50000";
 
 /// Error type that is returned from cache-related operations - Encoding, decoding, fetching from the server, io and such..
 #[derive(Debug)]
