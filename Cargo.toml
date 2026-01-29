@@ -1,3 +1,4 @@
 [workspace]
 resolver = "3"
-members = [ "amfm", "antenna" ]
+members = ["amfm", "antenna"]
+default-members = ["amfm"]

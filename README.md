@@ -9,6 +9,14 @@ amfm is a TUI (Terminal User Interface) to browse, play, and save songs from var
 - [x] Playback
 - [x] Save songs by name
 
+
+## How to run
+If you use Nix/NixOS you can run:
+```bash
+nix run github:rotlug/amfm
+```
+Otherwise, you have to build the program from source.
+
 ## Build Requirements
 Build requirements are defined in `Cargo.toml`. However, the following packages need to be installed as well:
 * `pkg-config`

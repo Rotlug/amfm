@@ -166,7 +166,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         let mut current_msg = handle_event(&model)?;
 
         while let Some(msg) = current_msg {
-            current_msg = update(&mut model, msg)
+            current_msg = update(&mut model, msg);
         }
     }
 

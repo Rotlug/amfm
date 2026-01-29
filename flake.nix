@@ -34,6 +34,40 @@
               gst_all_1.gst-plugins-ugly
             ];
           };
+
+          packages.default = let
+            manifest = (pkgs.lib.importTOML ./amfm/Cargo.toml).package;
+          in
+            pkgs.rustPlatform.buildRustPackage {
+              pname = manifest.name;
+              version = manifest.version;
+
+              cargoLock.lockFile = ./Cargo.lock;
+
+              src = ./.;
+
+              nativeBuildInputs = with pkgs; [
+                pkg-config
+                makeWrapper
+              ];
+
+              buildInputs =
+                [
+                  openssl
+                  glib
+                ]
+                ++ (with gst_all_1; [
+                  gstreamer
+                  gst-plugins-base
+                  gst-plugins-good
+                  gst-plugins-bad
+                ]);
+
+              postInstall = ''
+                wrapProgram $out/bin/${manifest.name} \
+                  --set GST_PLUGIN_SYSTEM_PATH_1_0 "${gst_all_1.gstreamer.out}/lib/gstreamer-1.0:${gst_all_1.gst-plugins-base.out}/lib/gstreamer-1.0:${gst_all_1.gst-plugins-good.out}/lib/gstreamer-1.0:${gst_all_1.gst-plugins-bad.out}/lib/gstreamer-1.0"
+              '';
+            };
         }
     );
 }
